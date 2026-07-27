@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
-import type { Record, MonthTarget, UserSettings } from '../supabase';
-import { fmt, formatDate, formatTime, mk, getCurMonth } from './utils';
+import { fmt, mk, getCurMonth, formatDate, formatTime } from './utils';
+import type { Record as FinRecord, MonthTarget, UserSettings } from '../supabase';
 
 interface Props {
-  records: Record[];
+  records: FinRecord[];
   settings: UserSettings | null;
   targets: MonthTarget[];
-  onSetBalance: (balance: number) => Promise<void>;
-  onSetTarget: (year: number, month: number, target: number) => Promise<void>;
+  onSetBalance: (v: number) => Promise<void>;
+  onSetTarget: (y: number, m: number, v: number) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
 }
 
@@ -22,14 +22,14 @@ export default function HomePage({ records, settings, targets, onSetBalance, onS
 
   useEffect(() => {
     const today = new Date().getDate();
-    const has = targets.some((t) => t.year === cur.year && t.month === cur.month);
+    const has = targets.some(t => t.year === cur.year && t.month === cur.month);
     if (today === 1 && !has) setShowTarget(true);
   }, [targets, cur.year, cur.month]);
 
   const initialBalance = Number(settings?.initial_balance ?? 0);
   const totalIncome = records.filter(r => r.type === 'income').reduce((s, r) => s + r.amount, 0);
   const totalExpense = records.filter(r => r.type === 'expense').reduce((s, r) => s + r.amount, 0);
-  const balance = settings ? initialBalance + totalIncome - totalExpense : 0;
+  const balance = initialBalance + totalIncome - totalExpense;
 
   const monthRecords = records.filter(r => {
     const d = new Date(r.timestamp);
@@ -42,266 +42,172 @@ export default function HomePage({ records, settings, targets, onSetBalance, onS
   let avg6 = 0;
   for (let i = 5; i >= 0; i--) {
     const d = new Date(cur.year, cur.month - 1 - i, 1);
-    const y = d.getFullYear();
-    const m = d.getMonth() + 1;
+    const y = d.getFullYear(), m = d.getMonth() + 1;
     const rs = records.filter(r => {
       const rd = new Date(r.timestamp);
       return rd.getFullYear() === y && rd.getMonth() + 1 === m;
     });
-    avg6 += rs.filter(r => r.type === 'income').reduce((s, r) => s + r.amount, 0)
-         - rs.filter(r => r.type === 'expense').reduce((s, r) => s + r.amount, 0);
+    avg6 += rs.filter(r => r.type === 'income').reduce((s, r) => s + r.amount, 0) - rs.filter(r => r.type === 'expense').reduce((s, r) => s + r.amount, 0);
   }
   avg6 /= 6;
 
   const curTarget = targets.find(t => t.year === cur.year && t.month === cur.month);
-  const recent = records.slice(0, 15);
+  const recent = records.slice(0, 10);
 
   return (
-    <div className="page-enter p-6">
-      {/* 余额区域 */}
-      <div className="text-center mb-8">
-        <div className="text-[13px] text-[var(--apple-text-secondary)] mb-2">个人总余额</div>
-        <div className={`text-[40px] font-bold amount-font tracking-tight ${
-          balance >= 0 ? 'text-[var(--apple-text)]' : 'text-[var(--apple-red)]'
-        }`}>
+    <div className="page-enter p-4 md:p-8">
+      <h2 className="text-2xl font-bold mb-6 tracking-tight hidden md:block">总览</h2>
+
+      {/* 总余额 */}
+      <div className="card p-6 mb-5 text-center">
+        <div className="text-sm text-gray-500 mb-1">个人总余额</div>
+        <div className={`text-4xl md:text-5xl font-bold amount-font tracking-tight ${balance >= 0 ? 'text-gray-900' : 'text-red-500'}`}>
           {fmt(balance)}
         </div>
       </div>
 
-      {/* 统计卡片 */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <StatCard label="本月收入" value={mInc} color="text-[var(--apple-green)]" />
-        <StatCard label="本月支出" value={mExp} color="text-[var(--apple-red)]" />
-        <StatCard label="本月净结余" value={mNet} color={mNet >= 0 ? 'text-[var(--apple-blue)]' : 'text-[var(--apple-red)]'} />
-        <StatCard label="6月均结余" value={avg6} color={avg6 >= 0 ? 'text-[var(--apple-text)]' : 'text-[var(--apple-red)]'} />
+      {/* 月度概览 */}
+      <div className="card p-6 mb-5">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-base font-semibold">{mk(cur.year, cur.month)} 月度概览</h3>
+          {curTarget && <span className="text-xs text-gray-500">目标 {fmt(curTarget.target)}</span>}
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Stat label="本月收入" value={mInc} color="text-green-500" />
+          <Stat label="本月支出" value={mExp} color="text-red-500" />
+          <Stat label="净结余" value={mNet} color={mNet >= 0 ? 'text-blue-500' : 'text-red-500'} />
+          <Stat label="6月均结余" value={avg6} color={avg6 >= 0 ? 'text-gray-700' : 'text-red-400'} />
+        </div>
+        {curTarget && (
+          <div className="mt-5 pt-4 border-t border-gray-100">
+            <div className="flex justify-between text-sm mb-2">
+              <span className="text-gray-500">结余进度</span>
+              <span className={mNet >= curTarget.target ? 'text-green-500 font-semibold' : 'text-orange-500 font-semibold'}>
+                {fmt(mNet)} / {fmt(curTarget.target)} ({curTarget.target > 0 ? Math.round(mNet / curTarget.target * 100) : 0}%)
+              </span>
+            </div>
+            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all ${mNet >= curTarget.target ? 'bg-green-500' : 'bg-blue-500'}`}
+                style={{ width: `${Math.min(Math.max((mNet / (curTarget.target || 1)) * 100, 0), 100)}%` }}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* 预算进度 */}
-      {curTarget && (
-        <div className="card p-5 mb-8">
-          <div className="flex justify-between items-center mb-3">
-            <span className="text-[15px] font-semibold text-[var(--apple-text-secondary)]">
-              {mk(cur.year, cur.month)} 结余目标
-            </span>
-            <span className={`text-[15px] font-semibold amount-font ${
-              mNet >= curTarget.target ? 'text-[var(--apple-green)]' : 'text-[var(--apple-orange)]'
-            }`}>
-              {fmt(mNet)} / {fmt(curTarget.target)}
-            </span>
-          </div>
-          <div className="h-2 bg-[var(--apple-gray-2)] rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all duration-500 ${
-                mNet >= curTarget.target ? 'bg-[var(--apple-green)]' : 'bg-[var(--apple-blue)]'
-              }`}
-              style={{ width: `${Math.min(curTarget.target > 0 ? (mNet / curTarget.target) * 100 : 0, 100)}%` }}
-            />
-          </div>
-          <div className="text-right mt-1.5">
-            <span className="text-[13px] text-[var(--apple-text-secondary)]">
-              {curTarget.target > 0 ? Math.round(mNet / curTarget.target * 100) : 0}%
-            </span>
-          </div>
-        </div>
-      )}
-
       {/* 最近记录 */}
-      <div>
-        <h3 className="text-[17px] font-semibold text-[var(--apple-text)] mb-4">最近记录</h3>
+      <div className="card p-6">
+        <h3 className="text-base font-semibold mb-4">最近记录</h3>
         {recent.length === 0 ? (
-          <div className="card p-8 text-center">
-            <div className="text-4xl mb-3">📝</div>
-            <p className="text-[15px] text-[var(--apple-text-secondary)] mb-4">暂无记录</p>
-            <p className="text-[13px] text-[var(--apple-text-secondary)]">点击下方 + 开始记账</p>
-          </div>
+          <div className="text-center py-8 text-gray-400 text-sm">暂无记录，点击下方 + 开始记账</div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-3">
             {recent.map(r => (
-              <RecordRow key={r.id} record={r} onDelete={onDelete} />
+              <RecordRow key={r.id} r={r} onDelete={onDelete} />
             ))}
           </div>
         )}
       </div>
 
-      {/* Modals */}
-      {showSetup && (
-        <SetupModal
-          onSubmit={async (v) => {
-            await onSetBalance(v);
-            setShowSetup(false);
-          }}
-        />
-      )}
-      {showTarget && (
-        <TargetModal
-          year={cur.year}
-          month={cur.month}
-          onSubmit={async (t) => {
-            await onSetTarget(cur.year, cur.month, t);
-            setShowTarget(false);
-          }}
-        />
-      )}
+      {showSetup && <SetupModal onSubmit={async (v) => { await onSetBalance(v); setShowSetup(false); }} />}
+      {showTarget && <TargetModal year={cur.year} month={cur.month} onSubmit={async (v) => { await onSetTarget(cur.year, cur.month, v); setShowTarget(false); }} />}
     </div>
   );
 }
 
-// ===== 子组件 =====
-
-function StatCard({ label, value, color }: { label: string; value: number; color: string }) {
+function Stat({ label, value, color }: { label: string; value: number; color: string }) {
   return (
-    <div className="card p-5">
-      <div className="text-[13px] text-[var(--apple-text-secondary)] mb-2">{label}</div>
-      <div className={`text-xl md:text-2xl font-bold amount-font ${color}`}>{fmt(value)}</div>
+    <div>
+      <div className="text-xs text-gray-500 mb-1">{label}</div>
+      <div className={`text-lg md:text-xl font-bold amount-font ${color}`}>{fmt(value)}</div>
     </div>
   );
 }
 
-function RecordRow({ record, onDelete }: { record: Record; onDelete: (id: string) => Promise<void> }) {
-  const [confirmDelete, setConfirmDelete] = useState(false);
+function RecordRow({ r, onDelete }: { r: FinRecord; onDelete: (id: string) => Promise<void> }) {
+  const [confirm, setConfirm] = useState(false);
 
   return (
-    <div className="card p-4 flex items-center gap-3 group relative">
-      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg flex-shrink-0 ${
-        record.type === 'expense' ? 'bg-red-50' : 'bg-green-50'
-      }`}>
-        {record.type === 'expense' ? '💸' : '💰'}
+    <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors group">
+      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-base ${r.type === 'expense' ? 'bg-red-50' : 'bg-green-50'}`}>
+        {r.type === 'expense' ? '💸' : '💰'}
       </div>
       <div className="flex-1 min-w-0">
-        <div className="text-[15px] font-medium truncate flex items-center gap-2">
-          {record.category}
-          {record.detail && (
-            <span className="text-[13px] text-[var(--apple-text-secondary)] truncate">- {record.detail}</span>
-          )}
-          {record.is_family_card && (
-            <span className="text-[11px] text-[var(--apple-orange)] bg-orange-50 px-1.5 py-0.5 rounded-md flex-shrink-0">
-              亲属卡
-            </span>
-          )}
+        <div className="text-sm font-medium truncate">
+          {r.category}
+          {r.detail ? ` - ${r.detail}` : ''}
+          {r.is_family_card && <span className="ml-2 text-[10px] text-orange-500 bg-orange-50 px-1.5 py-0.5 rounded-md">亲属卡</span>}
         </div>
-        <div className="text-[13px] text-[var(--apple-text-secondary)] mt-0.5">
-          {formatDate(record.timestamp)} {formatTime(record.timestamp)}
-        </div>
+        <div className="text-xs text-gray-400">{formatDate(r.timestamp)} {formatTime(r.timestamp)}</div>
       </div>
-      <div className={`text-[17px] font-bold amount-font flex-shrink-0 ${
-        record.type === 'expense' ? 'text-[var(--apple-red)]' : 'text-[var(--apple-green)]'
-      }`}>
-        {record.type === 'expense' ? '-' : '+'}{fmt(record.amount)}
+      <div className={`text-base font-bold amount-font ${r.type === 'expense' ? 'text-red-500' : 'text-green-500'}`}>
+        {r.type === 'expense' ? '-' : '+'}{fmt(r.amount)}
       </div>
-      {!confirmDelete ? (
-        <button
-          onClick={() => setConfirmDelete(true)}
-          className="opacity-0 group-hover:opacity-100 text-[var(--apple-red)] text-[13px] font-medium hover:bg-red-50 px-2 py-1 rounded-lg transition-all"
-        >
-          删除
-        </button>
+      {confirm ? (
+        <button onClick={() => { onDelete(r.id); setConfirm(false); }} className="text-xs bg-red-500 text-white px-3 py-1.5 rounded-lg">删除</button>
       ) : (
-        <div className="flex items-center gap-1">
-          <button
-            onClick={async () => { await onDelete(record.id); }}
-            className="btn-danger text-[13px] px-3 py-1.5"
-          >
-            确认
-          </button>
-          <button
-            onClick={() => setConfirmDelete(false)}
-            className="btn-ghost text-[13px] px-2 py-1.5"
-          >
-            取消
-          </button>
-        </div>
+        <button onClick={() => setConfirm(true)} className="text-xs text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity px-2">删除</button>
       )}
     </div>
   );
 }
 
 function SetupModal({ onSubmit }: { onSubmit: (v: number) => Promise<void> }) {
-  const [value, setValue] = useState('');
+  const [v, setV] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const handle = async () => {
-    const n = parseFloat(value);
-    if (isNaN(n) || n < 0) return;
-    setSubmitting(true);
-    await onSubmit(n);
-    setSubmitting(false);
-  };
+  async function h() {
+    const n = parseFloat(v);
+    if (n >= 0) {
+      setSubmitting(true);
+      await onSubmit(n);
+      setSubmitting(false);
+    }
+  }
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="card p-6 w-full max-w-sm scale-in">
-        <div className="text-4xl mb-4">💰</div>
-        <h2 className="text-[20px] font-bold mb-2">设置初始余额</h2>
-        <p className="text-[15px] text-[var(--apple-text-secondary)] mb-6">请输入您当前的个人总余额</p>
-        <div className="flex items-center gap-3 bg-[var(--apple-gray-1)] rounded-xl px-4 py-3 mb-6">
-          <span className="text-xl text-[var(--apple-text-secondary)]">¥</span>
-          <input
-            type="number"
-            inputMode="decimal"
-            placeholder="0.00"
-            value={value}
-            onChange={e => setValue(e.target.value)}
-            className="flex-1 text-xl font-bold outline-none bg-transparent amount-font"
-            autoFocus
-            onKeyDown={e => e.key === 'Enter' && handle()}
-          />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.35)' }}>
+      <div className="card w-full max-w-[360px] p-6 scale-in">
+        <div className="text-3xl mb-3">💰</div>
+        <h3 className="text-lg font-bold mb-1">设置初始余额</h3>
+        <p className="text-sm text-gray-500 mb-5">请输入您当前的个人总余额</p>
+        <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-4 py-3 mb-5">
+          <span className="text-xl text-gray-400">¥</span>
+          <input type="number" inputMode="decimal" placeholder="0.00" value={v} onChange={e => setV(e.target.value)} className="flex-1 text-xl font-bold outline-none amount-font bg-transparent" autoFocus onKeyDown={e => e.key === 'Enter' && h()} />
         </div>
-        <button
-          onClick={handle}
-          disabled={!value || submitting}
-          className="btn-primary w-full flex items-center justify-center gap-2"
-        >
-          {submitting && <div className="spinner" />}
-          确认
-        </button>
+        <button onClick={h} disabled={v === '' || submitting} className="btn-primary w-full flex items-center justify-center gap-2">{submitting && <div className="spinner" />}确认</button>
       </div>
     </div>
   );
 }
 
 function TargetModal({ year, month, onSubmit }: { year: number; month: number; onSubmit: (v: number) => Promise<void> }) {
-  const [value, setValue] = useState('');
+  const [v, setV] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const handle = async () => {
-    const n = parseFloat(value);
-    if (isNaN(n) || n < 0) return;
-    setSubmitting(true);
-    await onSubmit(n);
-    setSubmitting(false);
-  };
+  async function h() {
+    const n = parseFloat(v);
+    if (n >= 0) {
+      setSubmitting(true);
+      await onSubmit(n);
+      setSubmitting(false);
+    }
+  }
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="card p-6 w-full max-w-sm scale-in">
-        <div className="text-4xl mb-4">🎯</div>
-        <h2 className="text-[20px] font-bold mb-2">设置本月结余目标</h2>
-        <p className="text-[15px] text-[var(--apple-text-secondary)] mb-6">{year}年{month}月</p>
-        <div className="flex items-center gap-3 bg-[var(--apple-gray-1)] rounded-xl px-4 py-3 mb-6">
-          <span className="text-xl text-[var(--apple-text-secondary)]">¥</span>
-          <input
-            type="number"
-            inputMode="decimal"
-            placeholder="0.00"
-            value={value}
-            onChange={e => setValue(e.target.value)}
-            className="flex-1 text-xl font-bold outline-none bg-transparent amount-font"
-            autoFocus
-            onKeyDown={e => e.key === 'Enter' && handle()}
-          />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.35)' }}>
+      <div className="card w-full max-w-[360px] p-6 scale-in">
+        <div className="text-3xl mb-3">🎯</div>
+        <h3 className="text-lg font-bold mb-1">设置本月结余目标</h3>
+        <p className="text-sm text-gray-500 mb-5">{year}年{month}月</p>
+        <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-4 py-3 mb-5">
+          <span className="text-xl text-gray-400">¥</span>
+          <input type="number" inputMode="decimal" placeholder="0.00" value={v} onChange={e => setV(e.target.value)} className="flex-1 text-xl font-bold outline-none amount-font bg-transparent" autoFocus onKeyDown={e => e.key === 'Enter' && h()} />
         </div>
         <div className="flex gap-3">
-          <button onClick={() => onSubmit(0)} className="btn-secondary flex-1">
-            跳过
-          </button>
-          <button
-            onClick={handle}
-            disabled={!value || submitting}
-            className="btn-primary flex-1 flex items-center justify-center gap-2"
-          >
-            {submitting && <div className="spinner" />}
-            设置
-          </button>
+          <button onClick={async () => { setSubmitting(true); await onSubmit(0); setSubmitting(false); }} className="btn-secondary flex-1 text-sm">跳过</button>
+          <button onClick={h} disabled={v === '' || submitting} className="btn-primary flex-1 flex items-center justify-center gap-2">{submitting && <div className="spinner" />}设置</button>
         </div>
       </div>
     </div>

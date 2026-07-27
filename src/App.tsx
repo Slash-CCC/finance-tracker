@@ -18,67 +18,54 @@ import StatsPage from './pages/StatsPage';
 import AmazonPage from './pages/AmazonPage';
 import SettingsPage from './pages/SettingsPage';
 
-// ==================== ç±»å ====================
-
 type Page = 'home' | 'add' | 'amazon' | 'stats' | 'records' | 'settings';
 
-// ==================== å¯¼èªéç½® ====================
-
 const SIDEBAR_ITEMS: { key: Page; icon: string; label: string }[] = [
-  { key: 'home', icon: 'ð°', label: 'æ»è§' },
-  { key: 'records', icon: 'ð', label: 'æç»' },
-  { key: 'stats', icon: 'ð', label: 'ç»è®¡' },
-  { key: 'amazon', icon: 'ð¦', label: 'äºé©¬é?' },
-  { key: 'settings', icon: 'âï¸', label: 'è®¾ç½®' },
+  { key: 'home', icon: '💰', label: '总览' },
+  { key: 'records', icon: '📋', label: '明细' },
+  { key: 'stats', icon: '📊', label: '统计' },
+  { key: 'amazon', icon: '📦', label: '亚马逊' },
+  { key: 'settings', icon: '⚙️', label: '设置' },
 ];
 
 const MOBILE_TABS: { key: Page; icon: string; label: string }[] = [
-  { key: 'home', icon: 'ð ', label: 'é¦é¡µ' },
-  { key: 'records', icon: 'ð', label: 'æç»' },
-  { key: 'add', icon: '+', label: 'è®°è´¦' },
-  { key: 'amazon', icon: 'ð¦', label: 'äºé©¬é?' },
-  { key: 'stats', icon: 'ð', label: 'ç»è®¡' },
+  { key: 'home', icon: '🏠', label: '首页' },
+  { key: 'records', icon: '📋', label: '明细' },
+  { key: 'add', icon: '+', label: '记账' },
+  { key: 'amazon', icon: '📦', label: '亚马逊' },
+  { key: 'stats', icon: '📊', label: '统计' },
 ];
 
 const PAGE_TITLES: Record<Page, string> = {
-  home: 'æ»è§',
-  add: 'è®°è´¦',
-  amazon: 'äºé©¬é?',
-  stats: 'ç»è®¡',
-  records: 'æç»',
-  settings: 'è®¾ç½®',
+  home: '总览',
+  add: '记一笔',
+  amazon: '亚马逊',
+  stats: '统计',
+  records: '明细',
+  settings: '设置',
 };
-
-// ==================== App ====================
 
 export default function App() {
   const [page, setPage] = useState<Page>('home');
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  // æ°æ®
   const [records, setRecords] = useState<FinRecord[]>([]);
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [targets, setTargets] = useState<MonthTarget[]>([]);
   const [dataLoaded, setDataLoaded] = useState(false);
 
-  // è®¤è¯ç¶æ?
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session: sess } }) => {
       setSession(sess);
-      if (sess) {
-        loadUserData();
-      }
+      if (sess) loadUserData();
       setLoading(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, sess) => {
       setSession(sess);
-      if (sess) {
-        loadUserData();
-      } else {
-        setDataLoaded(false);
-      }
+      if (sess) loadUserData();
+      else setDataLoaded(false);
     });
 
     return () => subscription.unsubscribe();
@@ -96,7 +83,7 @@ export default function App() {
       setTargets(tgs);
       setDataLoaded(true);
     } catch (e) {
-      console.error('Failed to load user data:', e);
+      console.error(e);
     }
   }
 
@@ -132,7 +119,6 @@ export default function App() {
     setDataLoaded(false);
   }, []);
 
-  // å è½½ä¸?
   if (loading) {
     return (
       <div className="h-screen flex items-center justify-center bg-[var(--apple-bg)]">
@@ -141,12 +127,10 @@ export default function App() {
     );
   }
 
-  // æªç»å½?
   if (!session) {
-    return <AuthPage onLogin={loadUserData} />;
+    return <AuthPage onLogin={() => { loadUserData(); }} />;
   }
 
-  // æ°æ®å è½½ä¸?
   if (!dataLoaded) {
     return (
       <div className="h-screen flex items-center justify-center bg-[var(--apple-bg)]">
@@ -178,117 +162,85 @@ export default function App() {
 
   return (
     <>
-      {/* ===== æ¡é¢ç«¯å¸å± ===== */}
+      {/* 桌面端 */}
       <div className="hidden md:flex h-screen bg-[var(--apple-bg)]">
-        {/* ä¾§è¾¹æ ? */}
-        <aside className="w-[220px] flex-shrink-0 flex flex-col glass-strong border-r border-white/50">
-          {/* Logo */}
-          <div className="px-6 py-6">
+        <aside className="w-[240px] flex-shrink-0 flex flex-col glass-strong border-r border-white/60">
+          <div className="px-6 py-7">
             <div className="flex items-center gap-3">
-              <span className="text-2xl">ð°</span>
-              <span className="text-[17px] font-bold text-[var(--apple-text)]">è´¢æ¿è®°å½</span>
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xl shadow-md">💰</div>
+              <span className="text-lg font-bold tracking-tight">财政记录</span>
             </div>
           </div>
 
-          {/* å¯¼èª */}
-          <nav className="flex-1 px-3">
+          <nav className="flex-1 px-4 space-y-1">
             {SIDEBAR_ITEMS.map(item => (
               <button
                 key={item.key}
                 onClick={() => setPage(item.key)}
-                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-[15px] font-medium transition-all mb-1 ${
-                  page === item.key
-                    ? 'bg-[var(--apple-blue)] text-white'
-                    : 'text-[var(--apple-text-secondary)] hover:bg-[var(--apple-gray-1)]'
-                }`}
+                className={`
+                  w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[15px] font-medium transition-all
+                  ${page === item.key
+                    ? 'bg-blue-500 text-white shadow-md shadow-blue-200'
+                    : 'text-gray-600 hover:bg-white/60'
+                  }
+                `}
               >
                 <span className="text-lg">{item.icon}</span>
-                <span>{item.label}</span>
+                {item.label}
               </button>
             ))}
           </nav>
 
-          {/* åºé¨ç¨æ·ä¿¡æ¯ */}
-          <div className="px-4 py-4 border-t border-[var(--apple-gray-2)]">
-            <div className="text-[13px] text-[var(--apple-text-secondary)] truncate mb-2">
-              {userEmail}
-            </div>
-            <button
-              onClick={handleLogout}
-              className="text-[13px] text-[var(--apple-red)] hover:bg-red-50 px-2 py-1 rounded-lg transition-colors"
-            >
-              éåºç»å½?
+          <div className="p-4 border-t border-gray-200/60">
+            <div className="text-xs text-gray-500 truncate mb-2 px-2">{userEmail}</div>
+            <button onClick={handleLogout} className="w-full text-left px-4 py-2.5 rounded-xl text-sm text-red-500 hover:bg-red-50 transition-colors">
+              退出登录
             </button>
           </div>
         </aside>
 
-        {/* ä¸»åå®¹åº */}
-        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-          {/* Header */}
-          <header className="h-14 flex-shrink-0 glass-subtle border-b border-white/50 flex items-center justify-between px-6">
-            <h1 className="text-[17px] font-semibold text-[var(--apple-text)]">
-              {PAGE_TITLES[page]}
-            </h1>
+        <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
+          <header className="h-[70px] flex items-center justify-between px-8 glass border-b border-white/40 flex-shrink-0">
+            <h1 className="text-xl font-bold tracking-tight">{PAGE_TITLES[page]}</h1>
             <div className="flex items-center gap-3">
-              <span className="text-[13px] text-[var(--apple-text-secondary)]">{userEmail}</span>
-              <button
-                onClick={handleLogout}
-                className="btn-ghost text-[13px]"
-              >
-                éå?
-              </button>
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center text-sm">👤</div>
+              <span className="text-sm text-gray-600 hidden lg:block">{userEmail}</span>
             </div>
           </header>
-
-          {/* åå®¹å? */}
-          <main className="flex-1 overflow-auto">
+          <div className="flex-1 overflow-auto">
             {renderPage()}
-          </main>
-        </div>
+          </div>
+        </main>
       </div>
 
-      {/* ===== ç§»å¨ç«¯å¸å± ===== */}
+      {/* 移动端 */}
       <div className="flex flex-col h-screen md:hidden bg-[var(--apple-bg)]">
-        {/* åå®¹å? */}
-        <main className="flex-1 overflow-auto safe-bottom">
+        <main className="flex-1 overflow-auto pb-24">
           {renderPage()}
         </main>
-
-        {/* åºé¨å¯¼èª */}
-        <BottomNav page={page} onPage={setPage} />
+        <nav className="fixed bottom-0 left-0 right-0 z-40 glass-strong border-t border-white/60 safe-bottom">
+          <div className="flex items-center justify-around px-2" style={{ paddingTop: 8, paddingBottom: 'max(10px, env(safe-area-inset-bottom))' }}>
+            {MOBILE_TABS.map(item => (
+              <button
+                key={item.key}
+                onClick={() => setPage(item.key)}
+                className={`flex flex-col items-center gap-1 py-2 px-3 rounded-xl transition-all ${page === item.key ? 'text-blue-500' : 'text-gray-400'}`}
+              >
+                {item.key === 'add' ? (
+                  <div className="w-12 h-12 -mt-6 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center text-2xl font-bold shadow-lg shadow-blue-300/50">
+                    +
+                  </div>
+                ) : (
+                  <>
+                    <span className="text-xl">{item.icon}</span>
+                    <span className="text-[10px] font-medium">{item.label}</span>
+                  </>
+                )}
+              </button>
+            ))}
+          </div>
+        </nav>
       </div>
     </>
-  );
-}
-
-// ==================== åºé¨å¯¼èª ====================
-
-function BottomNav({ page, onPage }: { page: Page; onPage: (p: Page) => void }) {
-  return (
-    <nav className="glass-strong border-t border-white/50 flex justify-around items-center px-2 safe-bottom"
-      style={{ paddingTop: 8, paddingBottom: 'max(8px, env(safe-area-inset-bottom))' }}>
-      {MOBILE_TABS.map(tab => (
-        <button
-          key={tab.key}
-          onClick={() => onPage(tab.key)}
-          className={`flex flex-col items-center gap-0.5 py-1 px-2 rounded-xl transition-all ${
-            page === tab.key ? 'text-[var(--apple-blue)]' : 'text-[var(--apple-text-secondary)]'
-          }`}
-        >
-          {tab.key === 'add' ? (
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white text-2xl font-bold shadow-lg transition-all ${
-              page === 'add' ? 'bg-[var(--apple-blue)] scale-110' : 'bg-[var(--apple-blue)]'
-            }`}>
-              +
-            </div>
-          ) : (
-            <>
-              <span className="text-xl">{tab.icon}</span>
-              <span className="text-[10px] font-medium">{tab.label}</span>
-            </>
-          )}
-        </button>
-      ))}
-    </nav>
   );
 }
