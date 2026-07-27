@@ -111,9 +111,7 @@ body {
 
 /* ===== 苹果风卡片 ===== */
 .card {
-  background: rgba(255,255,255,0.72);
-  backdrop-filter: saturate(180%) blur(20px);
-  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  background: #FFFFFF;
   border-radius: var(--apple-radius-lg);
   box-shadow: var(--apple-shadow);
   border: 0.5px solid rgba(0,0,0,0.04);

@@ -20,20 +20,20 @@ import SettingsPage from './pages/SettingsPage';
 
 type Page = 'home' | 'add' | 'amazon' | 'stats' | 'records' | 'settings';
 
-const SIDEBAR_ITEMS: { key: Page; icon: string; label: string }[] = [
-  { key: 'home', icon: '💰', label: '总览' },
-  { key: 'records', icon: '📋', label: '明细' },
-  { key: 'stats', icon: '📊', label: '统计' },
-  { key: 'amazon', icon: '📦', label: '亚马逊' },
-  { key: 'settings', icon: '⚙️', label: '设置' },
+const SIDEBAR_ITEMS: { key: Page; label: string }[] = [
+  { key: 'home', label: '总览' },
+  { key: 'records', label: '明细' },
+  { key: 'stats', label: '统计' },
+  { key: 'amazon', label: '亚马逊' },
+  { key: 'settings', label: '设置' },
 ];
 
-const MOBILE_TABS: { key: Page; icon: string; label: string }[] = [
-  { key: 'home', icon: '🏠', label: '首页' },
-  { key: 'records', icon: '📋', label: '明细' },
-  { key: 'add', icon: '+', label: '记账' },
-  { key: 'amazon', icon: '📦', label: '亚马逊' },
-  { key: 'stats', icon: '📊', label: '统计' },
+const MOBILE_TABS: { key: Page; label: string }[] = [
+  { key: 'home', label: '首页' },
+  { key: 'records', label: '明细' },
+  { key: 'add', label: '记账' },
+  { key: 'amazon', label: '亚马逊' },
+  { key: 'stats', label: '统计' },
 ];
 
 const PAGE_TITLES: Record<Page, string> = {
@@ -164,12 +164,9 @@ export default function App() {
     <>
       {/* 桌面端 */}
       <div className="hidden md:flex h-screen bg-[var(--apple-bg)]">
-        <aside className="w-[240px] flex-shrink-0 flex flex-col glass-strong border-r border-white/60">
-          <div className="px-6 py-7">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xl shadow-md">💰</div>
-              <span className="text-lg font-bold tracking-tight">财政记录</span>
-            </div>
+        <aside className="w-[240px] flex-shrink-0 flex flex-col bg-white border-r border-gray-100">
+          <div className="px-6 py-8">
+            <span className="text-lg font-bold tracking-tight">经济监管工具</span>
           </div>
 
           <nav className="flex-1 px-4 space-y-1">
@@ -178,32 +175,31 @@ export default function App() {
                 key={item.key}
                 onClick={() => setPage(item.key)}
                 className={`
-                  w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[15px] font-medium transition-all
+                  w-full text-left px-5 py-3.5 rounded-lg text-[15px] font-medium transition-all duration-200
                   ${page === item.key
-                    ? 'bg-blue-500 text-white shadow-md shadow-blue-200'
-                    : 'text-gray-600 hover:bg-white/60'
+                    ? 'bg-blue-500 text-white shadow-md shadow-blue-200 scale-[1.03]'
+                    : 'text-gray-600 hover:bg-blue-50 hover:text-blue-500'
                   }
                 `}
               >
-                <span className="text-lg">{item.icon}</span>
                 {item.label}
               </button>
             ))}
           </nav>
 
-          <div className="p-4 border-t border-gray-200/60">
+          <div className="p-4 border-t border-gray-100">
             <div className="text-xs text-gray-500 truncate mb-2 px-2">{userEmail}</div>
-            <button onClick={handleLogout} className="w-full text-left px-4 py-2.5 rounded-xl text-sm text-red-500 hover:bg-red-50 transition-colors">
+            <button onClick={handleLogout} className="w-full text-left px-5 py-3 rounded-lg text-sm text-red-500 hover:bg-red-50 transition-colors">
               退出登录
             </button>
           </div>
         </aside>
 
         <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
-          <header className="h-[70px] flex items-center justify-between px-8 glass border-b border-white/40 flex-shrink-0">
+          <header className="h-[70px] flex items-center justify-between px-8 bg-white border-b border-gray-100 flex-shrink-0">
             <h1 className="text-xl font-bold tracking-tight">{PAGE_TITLES[page]}</h1>
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center text-sm">👤</div>
+              <UserAvatar />
               <span className="text-sm text-gray-600 hidden lg:block">{userEmail}</span>
             </div>
           </header>
@@ -218,23 +214,20 @@ export default function App() {
         <main className="flex-1 overflow-auto pb-24">
           {renderPage()}
         </main>
-        <nav className="fixed bottom-0 left-0 right-0 z-40 glass-strong border-t border-white/60 safe-bottom">
+        <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-100 safe-bottom">
           <div className="flex items-center justify-around px-2" style={{ paddingTop: 8, paddingBottom: 'max(10px, env(safe-area-inset-bottom))' }}>
             {MOBILE_TABS.map(item => (
               <button
                 key={item.key}
                 onClick={() => setPage(item.key)}
-                className={`flex flex-col items-center gap-1 py-2 px-3 rounded-xl transition-all ${page === item.key ? 'text-blue-500' : 'text-gray-400'}`}
+                className={`flex flex-col items-center gap-1 py-2 px-3 rounded-lg transition-all ${page === item.key ? 'text-blue-500' : 'text-gray-400'}`}
               >
                 {item.key === 'add' ? (
                   <div className="w-12 h-12 -mt-6 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center text-2xl font-bold shadow-lg shadow-blue-300/50">
                     +
                   </div>
                 ) : (
-                  <>
-                    <span className="text-xl">{item.icon}</span>
-                    <span className="text-[10px] font-medium">{item.label}</span>
-                  </>
+                  <span className="text-[10px] font-medium">{item.label}</span>
                 )}
               </button>
             ))}
@@ -243,4 +236,33 @@ export default function App() {
       </div>
     </>
   );
+}
+
+function UserAvatar() {
+  const [avatar, setAvatar] = useState('');
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('user-profile');
+      if (raw) {
+        const p = JSON.parse(raw);
+        if (p.avatar) setAvatar(p.avatar);
+      }
+    } catch {}
+    const onStorage = () => {
+      try {
+        const raw = localStorage.getItem('user-profile');
+        if (raw) {
+          const p = JSON.parse(raw);
+          if (p.avatar) setAvatar(p.avatar);
+        }
+      } catch {}
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
+
+  if (avatar) {
+    return <img src={avatar} alt="" className="w-8 h-8 rounded-full object-cover border border-gray-200" />;
+  }
+  return <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-sm text-gray-400">?</div>;
 }
