@@ -2,6 +2,7 @@
 
 /* ===== 苹果设计语言 - 全局变量 ===== */
 :root {
+  --spacing: 0.25rem;
   --apple-blue: #007AFF;
   --apple-green: #34C759;
   --apple-red: #FF3B30;
