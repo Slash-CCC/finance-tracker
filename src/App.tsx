@@ -9,7 +9,7 @@ import {
   getMonthTargets,
   upsertMonthTarget,
 } from './supabase';
-import type { Record, MonthTarget, UserSettings } from './supabase';
+import type { Record as FinRecord, MonthTarget, UserSettings } from './supabase';
 import AuthPage from './pages/AuthPage';
 import HomePage from './pages/HomePage';
 import AddPage from './pages/AddPage';
@@ -28,7 +28,7 @@ const SIDEBAR_ITEMS: { key: Page; icon: string; label: string }[] = [
   { key: 'home', icon: '💰', label: '总览' },
   { key: 'records', icon: '📋', label: '明细' },
   { key: 'stats', icon: '📊', label: '统计' },
-  { key: 'amazon', icon: '📦', label: '亚马逊' },
+  { key: 'amazon', icon: '📦', label: '亚马�?' },
   { key: 'settings', icon: '⚙️', label: '设置' },
 ];
 
@@ -36,14 +36,14 @@ const MOBILE_TABS: { key: Page; icon: string; label: string }[] = [
   { key: 'home', icon: '🏠', label: '首页' },
   { key: 'records', icon: '📋', label: '明细' },
   { key: 'add', icon: '+', label: '记账' },
-  { key: 'amazon', icon: '📦', label: '亚马逊' },
+  { key: 'amazon', icon: '📦', label: '亚马�?' },
   { key: 'stats', icon: '📊', label: '统计' },
 ];
 
 const PAGE_TITLES: Record<Page, string> = {
   home: '总览',
   add: '记账',
-  amazon: '亚马逊',
+  amazon: '亚马�?',
   stats: '统计',
   records: '明细',
   settings: '设置',
@@ -57,12 +57,12 @@ export default function App() {
   const [loading, setLoading] = useState(true);
 
   // 数据
-  const [records, setRecords] = useState<Record[]>([]);
+  const [records, setRecords] = useState<FinRecord[]>([]);
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [targets, setTargets] = useState<MonthTarget[]>([]);
   const [dataLoaded, setDataLoaded] = useState(false);
 
-  // 认证状态
+  // 认证状�?
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session: sess } }) => {
       setSession(sess);
@@ -132,7 +132,7 @@ export default function App() {
     setDataLoaded(false);
   }, []);
 
-  // 加载中
+  // 加载�?
   if (loading) {
     return (
       <div className="h-screen flex items-center justify-center bg-[var(--apple-bg)]">
@@ -141,12 +141,12 @@ export default function App() {
     );
   }
 
-  // 未登录
+  // 未登�?
   if (!session) {
     return <AuthPage onLogin={loadUserData} />;
   }
 
-  // 数据加载中
+  // 数据加载�?
   if (!dataLoaded) {
     return (
       <div className="h-screen flex items-center justify-center bg-[var(--apple-bg)]">
@@ -154,18 +154,6 @@ export default function App() {
       </div>
     );
   }
-
-  const pageProps = {
-    records,
-    settings,
-    targets,
-    onAdd: handleAdd,
-    onDelete: handleDelete,
-    onSetBalance: handleSetBalance,
-    onSetTarget: handleSetTarget,
-    onRefresh: refreshRecords,
-    onLogout: handleLogout,
-  };
 
   const userEmail = session.user?.email || '';
 
@@ -192,7 +180,7 @@ export default function App() {
     <>
       {/* ===== 桌面端布局 ===== */}
       <div className="hidden md:flex h-screen bg-[var(--apple-bg)]">
-        {/* 侧边栏 */}
+        {/* 侧边�? */}
         <aside className="w-[220px] flex-shrink-0 flex flex-col glass-strong border-r border-white/50">
           {/* Logo */}
           <div className="px-6 py-6">
@@ -229,7 +217,7 @@ export default function App() {
               onClick={handleLogout}
               className="text-[13px] text-[var(--apple-red)] hover:bg-red-50 px-2 py-1 rounded-lg transition-colors"
             >
-              退出登录
+              退出登�?
             </button>
           </div>
         </aside>
@@ -247,12 +235,12 @@ export default function App() {
                 onClick={handleLogout}
                 className="btn-ghost text-[13px]"
               >
-                退出
+                退�?
               </button>
             </div>
           </header>
 
-          {/* 内容区 */}
+          {/* 内容�? */}
           <main className="flex-1 overflow-auto">
             {renderPage()}
           </main>
@@ -261,7 +249,7 @@ export default function App() {
 
       {/* ===== 移动端布局 ===== */}
       <div className="flex flex-col h-screen md:hidden bg-[var(--apple-bg)]">
-        {/* 内容区 */}
+        {/* 内容�? */}
         <main className="flex-1 overflow-auto safe-bottom">
           {renderPage()}
         </main>

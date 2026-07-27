@@ -44,7 +44,6 @@ export default function AddPage({ onAdd }: Props) {
   }
 
   const isValid = amount && cat && (cat !== '其他' || detail.trim());
-  const accentColor = type === 'expense' ? 'text-[var(--apple-red)]' : 'text-[var(--apple-green)]';
   const accentBg = type === 'expense' ? 'bg-[var(--apple-red)]' : 'bg-[var(--apple-green)]';
 
   return (
