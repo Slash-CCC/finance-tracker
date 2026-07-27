@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+:root {
+  --color-primary: #4F6EF7;
+  --color-income: #22C55E;
+  --color-expense: #EF4444;
+  --color-bg: #F5F5F7;
+  --color-card: #FFFFFF;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Helvetica Neue", sans-serif;
+  background: var(--color-bg);
+  color: #1D1D1F;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 手机优先：全宽；电脑端居中窄屏 */
+.app-container {
+  width: 100%;
+  min-height: 100dvh;
+  background: var(--color-bg);
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 768px) {
+  body { background: #E8E8ED; }
+  .app-container {
+    max-width: 500px;
+    margin: 0 auto;
+    box-shadow: 0 0 60px rgba(0,0,0,0.06);
+    min-height: 100dvh;
+  }
+}
+
+::-webkit-scrollbar { width: 0; }
+
+.amount-font {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.fade-in { animation: fadeIn 0.2s ease-out; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.slide-up { animation: slideUp 0.3s ease-out; }
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(100%); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 加载动画 */
+.spinner {
+  width: 20px; height: 20px;
+  border: 2px solid #E5E7EB;
+  border-top-color: #4F6EF7;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
