@@ -52,7 +52,7 @@ export default function AmazonPage({ records, settings }: Props) {
     <div className="page-enter p-4 md:p-8">
       <h2 className="text-2xl font-bold mb-6 tracking-tight hidden md:block">亚马逊</h2>
 
-      <div className="card p-8 mb-5">
+      <div className="card" style={{padding:32,marginBottom:20}}>
         <div className="flex flex-wrap gap-2 mb-4">
           {periods.map(p => (
             <button
@@ -77,25 +77,25 @@ export default function AmazonPage({ records, settings }: Props) {
       </div>
 
       <div className="grid grid-cols-2 gap-4 mb-5">
-        <div className="card p-8">
+        <div className="card" style={{padding:32}}>
           <div className="text-xs text-gray-500 mb-1">亚马逊收入</div>
           <div className="text-xl font-bold amount-font text-green-500">{fmt(inc)}</div>
         </div>
-        <div className="card p-8">
+        <div className="card" style={{padding:32}}>
           <div className="text-xs text-gray-500 mb-1">亚马逊支出</div>
           <div className="text-xl font-bold amount-font text-red-500">{fmt(exp)}</div>
         </div>
-        <div className="card p-8">
+        <div className="card" style={{padding:32}}>
           <div className="text-xs text-gray-500 mb-1">利润</div>
           <div className={`text-xl font-bold amount-font ${profit >= 0 ? 'text-blue-500' : 'text-red-500'}`}>{fmt(profit)}</div>
         </div>
-        <div className="card p-8">
+        <div className="card" style={{padding:32}}>
           <div className="text-xs text-gray-500 mb-1">利润占比</div>
           <div className="text-xl font-bold amount-font text-gray-800">{pp.toFixed(1)}%</div>
         </div>
       </div>
 
-      <div className="card p-8">
+      <div className="card" style={{padding:32}}>
         <h3 className="text-base font-semibold mb-4">占总个人资金比例</h3>
         <div className="space-y-4">
           <PctBar label="亚马逊收入占比" v={ip} color="bg-green-500" />

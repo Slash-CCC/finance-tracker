@@ -1,5 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
+  LayoutDashboard, ReceiptText, BarChart3, Package, Settings,
+} from 'lucide-react';
+import {
   supabase,
   addRecord,
   deleteRecord,
@@ -20,12 +23,12 @@ import SettingsPage from './pages/SettingsPage';
 
 type Page = 'home' | 'add' | 'amazon' | 'stats' | 'records' | 'settings';
 
-const SIDEBAR_ITEMS: { key: Page; label: string }[] = [
-  { key: 'home', label: '总览' },
-  { key: 'records', label: '明细' },
-  { key: 'stats', label: '统计' },
-  { key: 'amazon', label: '亚马逊' },
-  { key: 'settings', label: '设置' },
+const SIDEBAR_ITEMS: { key: Page; label: string; Icon: typeof LayoutDashboard }[] = [
+  { key: 'home', label: '总览', Icon: LayoutDashboard },
+  { key: 'records', label: '明细', Icon: ReceiptText },
+  { key: 'stats', label: '统计', Icon: BarChart3 },
+  { key: 'amazon', label: '亚马逊', Icon: Package },
+  { key: 'settings', label: '设置', Icon: Settings },
 ];
 
 const MOBILE_TABS: { key: Page; label: string }[] = [
@@ -169,19 +172,21 @@ export default function App() {
             <span className="text-xl font-bold tracking-tight">经济监管工具</span>
           </div>
 
-          <nav className="flex-1 px-4 space-y-1">
+          <nav className="flex-1 px-4 space-y-0.5">
             {SIDEBAR_ITEMS.map(item => (
               <button
                 key={item.key}
                 onClick={() => setPage(item.key)}
                 className={`
-                  w-full text-left px-5 py-4 rounded-none text-[15px] font-medium transition-all duration-200
+                  w-full text-left flex items-center gap-3 rounded-none text-[15px] font-medium transition-all duration-200
                   ${page === item.key
                     ? 'bg-blue-500 text-white shadow-md shadow-blue-200 scale-[1.02]'
                     : 'text-gray-600 hover:bg-blue-50 hover:text-blue-500'
                   }
                 `}
+                style={{ padding: '14px 20px' }}
               >
+                <item.Icon size={18} strokeWidth={1.8} />
                 {item.label}
               </button>
             ))}

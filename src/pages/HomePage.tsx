@@ -59,7 +59,7 @@ export default function HomePage({ records, settings, targets, onSetBalance, onS
       <h2 className="text-2xl font-bold mb-6 tracking-tight hidden md:block">总览</h2>
 
       {/* 总余额 */}
-      <div className="card p-8 mb-5 text-center">
+      <div className="card text-center" style={{padding:32,marginBottom:20}}>
         <div className="text-sm text-gray-500 mb-1">个人总余额</div>
         <div className={`text-4xl md:text-5xl font-bold amount-font tracking-tight ${balance >= 0 ? 'text-gray-900' : 'text-red-500'}`}>
           {fmt(balance)}
@@ -67,7 +67,7 @@ export default function HomePage({ records, settings, targets, onSetBalance, onS
       </div>
 
       {/* 月度概览 */}
-      <div className="card p-8 mb-5">
+      <div className="card" style={{padding:32,marginBottom:20}}>
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-base font-semibold">{mk(cur.year, cur.month)} 月度概览</h3>
           {curTarget && <span className="text-xs text-gray-500">目标 {fmt(curTarget.target)}</span>}
@@ -97,7 +97,7 @@ export default function HomePage({ records, settings, targets, onSetBalance, onS
       </div>
 
       {/* 最近记录 */}
-      <div className="card p-8">
+      <div className="card" style={{padding:32}}>
         <h3 className="text-base font-semibold mb-4">最近记录</h3>
         {recent.length === 0 ? (
           <div className="text-center py-8 text-gray-400 text-sm">暂无记录，点击下方 + 开始记账</div>

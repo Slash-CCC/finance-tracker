@@ -80,7 +80,7 @@ export default function RecordsPage({ records, onDelete }: Props) {
     <div className="page-enter p-4 md:p-8">
       <h2 className="text-2xl font-bold mb-6 tracking-tight hidden md:block">明细</h2>
 
-      <div className="card p-8 mb-5 space-y-4">
+      <div className="card" style={{padding:32,marginBottom:20}}>
         <div className="flex gap-2 flex-wrap">
           {(['all', 'expense', 'income'] as const).map(t => (
             <button
@@ -113,7 +113,7 @@ export default function RecordsPage({ records, onDelete }: Props) {
         {groups.length === 0 ? (
           <div className="text-center py-12 text-gray-400 text-sm card">暂无匹配记录</div>
         ) : groups.map(g => (
-          <div key={g.date} className="card p-8">
+          <div key={g.date} className="card" style={{padding:32}}>
             <div className="flex items-center justify-between mb-3 pb-3 border-b border-gray-100">
               <span className="text-sm font-semibold text-gray-700">{g.date}</span>
               <div className="flex gap-3 text-xs">
