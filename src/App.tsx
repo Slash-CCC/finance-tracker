@@ -18,35 +18,35 @@ import StatsPage from './pages/StatsPage';
 import AmazonPage from './pages/AmazonPage';
 import SettingsPage from './pages/SettingsPage';
 
-// ==================== 类型 ====================
+// ==================== ç±»å ====================
 
 type Page = 'home' | 'add' | 'amazon' | 'stats' | 'records' | 'settings';
 
-// ==================== 导航配置 ====================
+// ==================== å¯¼èªéç½® ====================
 
 const SIDEBAR_ITEMS: { key: Page; icon: string; label: string }[] = [
-  { key: 'home', icon: '💰', label: '总览' },
-  { key: 'records', icon: '📋', label: '明细' },
-  { key: 'stats', icon: '📊', label: '统计' },
-  { key: 'amazon', icon: '📦', label: '亚马�?' },
-  { key: 'settings', icon: '⚙️', label: '设置' },
+  { key: 'home', icon: 'ð°', label: 'æ»è§' },
+  { key: 'records', icon: 'ð', label: 'æç»' },
+  { key: 'stats', icon: 'ð', label: 'ç»è®¡' },
+  { key: 'amazon', icon: 'ð¦', label: 'äºé©¬é?' },
+  { key: 'settings', icon: 'âï¸', label: 'è®¾ç½®' },
 ];
 
 const MOBILE_TABS: { key: Page; icon: string; label: string }[] = [
-  { key: 'home', icon: '🏠', label: '首页' },
-  { key: 'records', icon: '📋', label: '明细' },
-  { key: 'add', icon: '+', label: '记账' },
-  { key: 'amazon', icon: '📦', label: '亚马�?' },
-  { key: 'stats', icon: '📊', label: '统计' },
+  { key: 'home', icon: 'ð ', label: 'é¦é¡µ' },
+  { key: 'records', icon: 'ð', label: 'æç»' },
+  { key: 'add', icon: '+', label: 'è®°è´¦' },
+  { key: 'amazon', icon: 'ð¦', label: 'äºé©¬é?' },
+  { key: 'stats', icon: 'ð', label: 'ç»è®¡' },
 ];
 
 const PAGE_TITLES: Record<Page, string> = {
-  home: '总览',
-  add: '记账',
-  amazon: '亚马�?',
-  stats: '统计',
-  records: '明细',
-  settings: '设置',
+  home: 'æ»è§',
+  add: 'è®°è´¦',
+  amazon: 'äºé©¬é?',
+  stats: 'ç»è®¡',
+  records: 'æç»',
+  settings: 'è®¾ç½®',
 };
 
 // ==================== App ====================
@@ -56,13 +56,13 @@ export default function App() {
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  // 数据
+  // æ°æ®
   const [records, setRecords] = useState<FinRecord[]>([]);
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [targets, setTargets] = useState<MonthTarget[]>([]);
   const [dataLoaded, setDataLoaded] = useState(false);
 
-  // 认证状�?
+  // è®¤è¯ç¶æ?
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session: sess } }) => {
       setSession(sess);
@@ -132,7 +132,7 @@ export default function App() {
     setDataLoaded(false);
   }, []);
 
-  // 加载�?
+  // å è½½ä¸?
   if (loading) {
     return (
       <div className="h-screen flex items-center justify-center bg-[var(--apple-bg)]">
@@ -141,12 +141,12 @@ export default function App() {
     );
   }
 
-  // 未登�?
+  // æªç»å½?
   if (!session) {
     return <AuthPage onLogin={loadUserData} />;
   }
 
-  // 数据加载�?
+  // æ°æ®å è½½ä¸?
   if (!dataLoaded) {
     return (
       <div className="h-screen flex items-center justify-center bg-[var(--apple-bg)]">
@@ -178,19 +178,19 @@ export default function App() {
 
   return (
     <>
-      {/* ===== 桌面端布局 ===== */}
+      {/* ===== æ¡é¢ç«¯å¸å± ===== */}
       <div className="hidden md:flex h-screen bg-[var(--apple-bg)]">
-        {/* 侧边�? */}
+        {/* ä¾§è¾¹æ ? */}
         <aside className="w-[220px] flex-shrink-0 flex flex-col glass-strong border-r border-white/50">
           {/* Logo */}
           <div className="px-6 py-6">
             <div className="flex items-center gap-3">
-              <span className="text-2xl">💰</span>
-              <span className="text-[17px] font-bold text-[var(--apple-text)]">财政记录</span>
+              <span className="text-2xl">ð°</span>
+              <span className="text-[17px] font-bold text-[var(--apple-text)]">è´¢æ¿è®°å½</span>
             </div>
           </div>
 
-          {/* 导航 */}
+          {/* å¯¼èª */}
           <nav className="flex-1 px-3">
             {SIDEBAR_ITEMS.map(item => (
               <button
@@ -208,7 +208,7 @@ export default function App() {
             ))}
           </nav>
 
-          {/* 底部用户信息 */}
+          {/* åºé¨ç¨æ·ä¿¡æ¯ */}
           <div className="px-4 py-4 border-t border-[var(--apple-gray-2)]">
             <div className="text-[13px] text-[var(--apple-text-secondary)] truncate mb-2">
               {userEmail}
@@ -217,12 +217,12 @@ export default function App() {
               onClick={handleLogout}
               className="text-[13px] text-[var(--apple-red)] hover:bg-red-50 px-2 py-1 rounded-lg transition-colors"
             >
-              退出登�?
+              éåºç»å½?
             </button>
           </div>
         </aside>
 
-        {/* 主内容区 */}
+        {/* ä¸»åå®¹åº */}
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           {/* Header */}
           <header className="h-14 flex-shrink-0 glass-subtle border-b border-white/50 flex items-center justify-between px-6">
@@ -235,33 +235,33 @@ export default function App() {
                 onClick={handleLogout}
                 className="btn-ghost text-[13px]"
               >
-                退�?
+                éå?
               </button>
             </div>
           </header>
 
-          {/* 内容�? */}
+          {/* åå®¹å? */}
           <main className="flex-1 overflow-auto">
             {renderPage()}
           </main>
         </div>
       </div>
 
-      {/* ===== 移动端布局 ===== */}
+      {/* ===== ç§»å¨ç«¯å¸å± ===== */}
       <div className="flex flex-col h-screen md:hidden bg-[var(--apple-bg)]">
-        {/* 内容�? */}
+        {/* åå®¹å? */}
         <main className="flex-1 overflow-auto safe-bottom">
           {renderPage()}
         </main>
 
-        {/* 底部导航 */}
+        {/* åºé¨å¯¼èª */}
         <BottomNav page={page} onPage={setPage} />
       </div>
     </>
   );
 }
 
-// ==================== 底部导航 ====================
+// ==================== åºé¨å¯¼èª ====================
 
 function BottomNav({ page, onPage }: { page: Page; onPage: (p: Page) => void }) {
   return (
