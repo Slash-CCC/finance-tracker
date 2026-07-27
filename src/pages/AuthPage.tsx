@@ -39,7 +39,7 @@ export default function AuthPage({ onLogin }: Props) {
           <p className="text-sm text-gray-500 mt-1">简单记录每一笔收支</p>
         </div>
 
-        <div className="card p-6">
+        <div className="card p-8">
           <div className="segment mb-6">
             <button onClick={() => { setMode('login'); setError(''); }} className={mode === 'login' ? 'active' : ''}>登录</button>
             <button onClick={() => { setMode('register'); setError(''); }} className={mode === 'register' ? 'active' : ''}>注册</button>

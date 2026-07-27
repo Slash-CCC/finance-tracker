@@ -54,7 +54,7 @@ export default function AddPage({ onAdd }: Props) {
         <button onClick={() => { setType('income'); setCat(''); }} className={type === 'income' ? 'active' : ''}>收入</button>
       </div>
 
-      <div className="card p-7 mb-5">
+      <div className="card p-8 mb-5">
         <label className="text-xs font-medium text-gray-500 mb-2 block">{type === 'expense' ? '支出金额' : '收入金额'}</label>
         <div className="flex items-center gap-3">
           <span className="text-2xl font-semibold text-gray-400">¥</span>
@@ -70,7 +70,7 @@ export default function AddPage({ onAdd }: Props) {
         </div>
       </div>
 
-      <div className="card p-7 mb-5">
+      <div className="card p-8 mb-5">
         <label className="text-xs font-medium text-gray-500 mb-3 block">选择分类</label>
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2.5">
           {cats.map(c => (
@@ -94,14 +94,14 @@ export default function AddPage({ onAdd }: Props) {
       </div>
 
       {cat === '其他' && (
-        <div className="card p-7 mb-5 scale-in">
+        <div className="card p-8 mb-5 scale-in">
           <label className="text-xs font-medium text-gray-500 mb-2 block">详细说明</label>
           <input type="text" placeholder="请说明具体内容..." value={detail} onChange={e => setDetail(e.target.value)} className="input-apple" autoFocus />
         </div>
       )}
 
       {type === 'expense' && (
-        <div className="card p-7 mb-6">
+        <div className="card p-8 mb-6">
           <label className="flex items-center gap-3 cursor-pointer">
             <input type="checkbox" checked={fc} onChange={e => setFc(e.target.checked)} className="w-5 h-5 rounded-md accent-blue-500" />
             <span className="text-sm text-gray-700">亲属卡支付</span>

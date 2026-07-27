@@ -64,7 +64,7 @@ export default function SettingsPage({ settings, onSetBalance, onLogout }: Props
       <h2 className="text-2xl font-bold mb-6 tracking-tight hidden md:block">设置</h2>
 
       {/* 头像和用户名 */}
-      <div className="card p-7 mb-5">
+      <div className="card p-8 mb-5">
         <h3 className="text-base font-semibold mb-5">个人信息</h3>
         <div className="flex items-center gap-5 mb-6">
           <div
@@ -100,7 +100,7 @@ export default function SettingsPage({ settings, onSetBalance, onLogout }: Props
       </div>
 
       {/* 初始余额 */}
-      <div className="card p-7 mb-5">
+      <div className="card p-8 mb-5">
         <h3 className="text-base font-semibold mb-5">初始余额</h3>
         <div className="flex items-center gap-3 bg-gray-50 rounded-xl px-5 py-3.5 mb-5">
           <span className="text-gray-400 font-medium">¥</span>
@@ -112,7 +112,7 @@ export default function SettingsPage({ settings, onSetBalance, onLogout }: Props
       </div>
 
       {/* 账号 */}
-      <div className="card p-7">
+      <div className="card p-8">
         <h3 className="text-base font-semibold mb-5">账号</h3>
         <button onClick={onLogout} className="w-full py-3.5 rounded-xl bg-red-50 text-red-500 font-medium hover:bg-red-100 transition-colors">
           退出登录

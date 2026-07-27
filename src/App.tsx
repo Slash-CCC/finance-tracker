@@ -164,9 +164,9 @@ export default function App() {
     <>
       {/* 桌面端 */}
       <div className="hidden md:flex h-screen bg-[var(--apple-bg)]">
-        <aside className="w-[240px] flex-shrink-0 flex flex-col bg-white border-r border-gray-100">
+        <aside className="w-[260px] flex-shrink-0 flex flex-col bg-white border-r border-gray-100">
           <div className="px-6 py-8">
-            <span className="text-lg font-bold tracking-tight">经济监管工具</span>
+            <span className="text-xl font-bold tracking-tight">经济监管工具</span>
           </div>
 
           <nav className="flex-1 px-4 space-y-1">
@@ -175,9 +175,9 @@ export default function App() {
                 key={item.key}
                 onClick={() => setPage(item.key)}
                 className={`
-                  w-full text-left px-5 py-3.5 rounded-lg text-[15px] font-medium transition-all duration-200
+                  w-full text-left px-5 py-4 rounded-none text-[15px] font-medium transition-all duration-200
                   ${page === item.key
-                    ? 'bg-blue-500 text-white shadow-md shadow-blue-200 scale-[1.03]'
+                    ? 'bg-blue-500 text-white shadow-md shadow-blue-200 scale-[1.02]'
                     : 'text-gray-600 hover:bg-blue-50 hover:text-blue-500'
                   }
                 `}
@@ -189,7 +189,7 @@ export default function App() {
 
           <div className="p-4 border-t border-gray-100">
             <div className="text-xs text-gray-500 truncate mb-2 px-2">{userEmail}</div>
-            <button onClick={handleLogout} className="w-full text-left px-5 py-3 rounded-lg text-sm text-red-500 hover:bg-red-50 transition-colors">
+            <button onClick={handleLogout} className="w-full text-left px-5 py-3.5 rounded-none text-sm text-red-500 hover:bg-red-50 transition-colors">
               退出登录
             </button>
           </div>

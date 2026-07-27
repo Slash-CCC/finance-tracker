@@ -47,7 +47,7 @@ export default function StatsPage({ records, targets }: Props) {
     <div className="page-enter p-4 md:p-8">
       <h2 className="text-2xl font-bold mb-6 tracking-tight hidden md:block">统计</h2>
 
-      <div className="card p-7 mb-5">
+      <div className="card p-8 mb-5">
         <div className="flex items-center justify-center gap-6 mb-5">
           <button onClick={() => { if (vm === 1) { setVm(12); setVy(vy - 1); } else setVm(vm - 1); }} className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200 transition-colors">‹</button>
           <span className="text-lg font-bold">{vy}年{vm}月</span>
@@ -75,7 +75,7 @@ export default function StatsPage({ records, targets }: Props) {
         )}
       </div>
 
-      <div className="card p-6">
+      <div className="card p-8">
         <h3 className="text-base font-semibold mb-4">分类明细（环比 / 同比）</h3>
         {stats.length === 0 ? (
           <div className="text-center py-10 text-gray-400 text-sm">暂无数据</div>
