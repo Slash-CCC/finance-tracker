@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase, addRecord, deleteRecord, getRecords, getUserSettings, upsertUserSettings, getMonthTargets, upsertMonthTarget, getAllRecords, getRecordsInRange } from './supabase';
+import { supabase, addRecord, deleteRecord, getRecords, getUserSettings, upsertUserSettings, getMonthTargets, upsertMonthTarget, getAllRecords } from './supabase';
 import type { Record, MonthTarget, UserSettings } from './supabase';
 
 // ==================== 常量 ====================
@@ -205,7 +205,7 @@ function AuthPage({ onLogin }: { onLogin: () => void }) {
 
 // ==================== 首页 ====================
 
-function HomePage({ records, settings, targets, onSetBalance, onSetTarget, onDelete, onLogout }: any) {
+function HomePage({ records, settings, targets, onSetBalance, onSetTarget, onDelete }: any) {
   const cur = getCurMonth();
   const [showSetup, setShowSetup] = useState(false);
   const [showTarget, setShowTarget] = useState(false);
@@ -590,7 +590,7 @@ function SettingsPage({ settings, onSetBalance, onLogout }: any) {
       </div>
 
       <div className="bg-white rounded-2xl p-5 shadow-sm mb-4">
-        <div className="text-sm text-gray-500 mb-3">账号：{supabase.auth.getSession&&'已登录'}</div>
+        <div className="text-sm text-gray-500 mb-3">已登录</div>
         <button onClick={onLogout} className="w-full py-2.5 rounded-xl bg-red-50 text-red-500 text-sm font-medium">退出登录</button>
       </div>
     </div>
