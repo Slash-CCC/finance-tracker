@@ -31,12 +31,12 @@ const SIDEBAR_ITEMS: { key: Page; label: string; Icon: typeof LayoutDashboard }[
   { key: 'settings', label: '设置', Icon: Settings },
 ];
 
-const MOBILE_TABS: { key: Page; label: string }[] = [
-  { key: 'home', label: '首页' },
-  { key: 'records', label: '明细' },
-  { key: 'add', label: '记账' },
-  { key: 'amazon', label: '亚马逊' },
-  { key: 'stats', label: '统计' },
+const MOBILE_TABS: { key: Page; label: string; Icon: typeof LayoutDashboard }[] = [
+  { key: 'home', label: '首页', Icon: LayoutDashboard },
+  { key: 'records', label: '明细', Icon: ReceiptText },
+  { key: 'add', label: '记账', Icon: LayoutDashboard },
+  { key: 'amazon', label: '亚马逊', Icon: Package },
+  { key: 'stats', label: '统计', Icon: BarChart3 },
 ];
 
 const PAGE_TITLES: Record<Page, string> = {
@@ -225,14 +225,17 @@ export default function App() {
               <button
                 key={item.key}
                 onClick={() => setPage(item.key)}
-                className={`flex flex-col items-center gap-1 py-2 px-3 rounded-lg transition-all ${page === item.key ? 'text-blue-500' : 'text-gray-400'}`}
+                className={`flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-lg transition-all ${page === item.key ? 'text-blue-500' : 'text-gray-400'}`}
               >
                 {item.key === 'add' ? (
                   <div className="w-12 h-12 -mt-6 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center text-2xl font-bold shadow-lg shadow-blue-300/50">
                     +
                   </div>
                 ) : (
-                  <span className="text-[10px] font-medium">{item.label}</span>
+                  <>
+                    <item.Icon size={20} strokeWidth={1.8} />
+                    <span className="text-[11px] font-medium">{item.label}</span>
+                  </>
                 )}
               </button>
             ))}

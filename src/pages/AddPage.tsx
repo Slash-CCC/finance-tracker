@@ -72,13 +72,13 @@ export default function AddPage({ onAdd }: Props) {
 
       <div className="card" style={{padding:32,marginBottom:20}}>
         <label className="text-xs font-medium text-gray-500 mb-3 block">选择分类</label>
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2.5">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
           {cats.map(c => (
             <button
               key={c}
               onClick={() => setCat(c)}
               className={`
-                py-3 px-2 rounded-xl text-[13px] font-medium transition-all border
+                py-4 px-2 rounded-xl text-sm font-medium transition-all border
                 ${cat === c
                   ? (type === 'expense'
                     ? 'bg-red-50 border-red-200 text-red-600 shadow-sm'
@@ -113,7 +113,7 @@ export default function AddPage({ onAdd }: Props) {
         onClick={submit}
         disabled={submitting || !isValid}
         className={`
-          w-full py-4 rounded-2xl text-white font-bold text-lg transition-all flex items-center justify-center gap-2
+          w-full rounded-2xl text-white font-bold transition-all flex items-center justify-center gap-2
           ${!isValid
             ? 'bg-gray-300 cursor-not-allowed'
             : type === 'expense'
@@ -121,6 +121,7 @@ export default function AddPage({ onAdd }: Props) {
               : 'bg-green-500 hover:bg-green-600 active:scale-[0.98] shadow-lg shadow-green-200'
           }
         `}
+        style={{padding: '18px 24px', fontSize: '17px'}}
       >
         {submitting && <div className="spinner" />}
         {ok ? '✓ 已记录' : type === 'expense' ? '记录支出' : '记录收入'}
