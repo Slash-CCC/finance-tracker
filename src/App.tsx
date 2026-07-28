@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-  LayoutDashboard, ReceiptText, BarChart3, Package, Settings,
+  LayoutDashboard, ReceiptText, BarChart3, Package, Settings, CirclePlus,
 } from 'lucide-react';
 import {
   supabase,
@@ -25,6 +25,7 @@ type Page = 'home' | 'add' | 'amazon' | 'stats' | 'records' | 'settings';
 
 const SIDEBAR_ITEMS: { key: Page; label: string; Icon: typeof LayoutDashboard }[] = [
   { key: 'home', label: '总览', Icon: LayoutDashboard },
+  { key: 'add', label: '记录', Icon: CirclePlus },
   { key: 'records', label: '明细', Icon: ReceiptText },
   { key: 'stats', label: '统计', Icon: BarChart3 },
   { key: 'amazon', label: '亚马逊', Icon: Package },
