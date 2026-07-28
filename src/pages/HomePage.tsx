@@ -16,8 +16,8 @@ interface Props {
 function getUserProfile() {
   try {
     const raw = localStorage.getItem('user-profile');
-    return raw ? JSON.parse(raw) : { avatar: '', username: '' };
-  } catch { return { avatar: '', username: '' }; }
+    return raw ? JSON.parse(raw) : { avatar: '', name: '' };
+  } catch { return { avatar: '', name: '' }; }
 }
 
 export default function HomePage({ records, settings, targets, onSetBalance, onSetTarget, onDelete, userEmail, onLogout }: Props) {
@@ -50,23 +50,23 @@ export default function HomePage({ records, settings, targets, onSetBalance, onS
   const mExp = monthRecords.filter(r => r.type === 'expense').reduce((s, r) => s + r.amount, 0);
   const mNet = mInc - mExp;
 
-  let avg6 = 0;
-  for (let i = 5; i >= 0; i--) {
-    const d = new Date(cur.year, cur.month - 1 - i, 1);
-    const y = d.getFullYear(), m = d.getMonth() + 1;
-    const rs = records.filter(r => {
-      const rd = new Date(r.timestamp);
-      return rd.getFullYear() === y && rd.getMonth() + 1 === m;
-    });
-    avg6 += rs.filter(r => r.type === 'income').reduce((s, r) => s + r.amount, 0) - rs.filter(r => r.type === 'expense').reduce((s, r) => s + r.amount, 0);
-  }
-  avg6 /= 6;
+  // 日均支出：本月按已有记录天数算平均，历史月份按实际天数
+  const monthDays = monthRecords.length > 0
+    ? (() => {
+        const dates = [...new Set(monthRecords.map(r => {
+          const d = new Date(r.timestamp);
+          return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+        }))];
+        return dates.length;
+      })()
+    : 0;
+  const dailyAvg = monthDays > 0 ? mExp / monthDays : 0;
 
   const curTarget = targets.find(t => t.year === cur.year && t.month === cur.month);
   const threeDaysAgo = new Date(Date.now() - 3 * 86400000).toISOString();
   const recent = records.filter(r => r.timestamp >= threeDaysAgo).slice(0, 10);
 
-  const displayName = profile.username || userEmail?.split('@')[0] || '用户';
+  const displayName = (profile.name || userEmail?.split('@')[0] || '用户').slice(0, 8);
 
   return (
     <div className="page-enter p-4 md:p-8">
@@ -86,7 +86,7 @@ export default function HomePage({ records, settings, targets, onSetBalance, onS
               {displayName[0]?.toUpperCase() || '?'}
             </div>
           )}
-          <span className="text-sm font-medium text-gray-600 hidden sm:block" style={{ maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <span className="text-sm font-medium text-gray-600" style={{ maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {displayName}
           </span>
         </button>
@@ -107,7 +107,7 @@ export default function HomePage({ records, settings, targets, onSetBalance, onS
           <Stat label="本月收入" value={mInc} color="text-green-500" />
           <Stat label="本月支出" value={mExp} color="text-red-500" />
           <Stat label="净结余" value={mNet} color={mNet >= 0 ? 'text-blue-500' : 'text-red-500'} />
-          <Stat label="半年月均结余" value={avg6} color={avg6 >= 0 ? 'text-gray-700' : 'text-red-400'} />
+          <Stat label="日均支出" value={dailyAvg} color={dailyAvg >= 0 ? 'text-orange-500' : 'text-red-400'} />
         </div>
         {curTarget && (
           <div className="mt-5 pt-4 border-t border-gray-100">
@@ -186,9 +186,9 @@ function RecordRow({ r, onDelete }: { r: FinRecord; onDelete: (id: string) => Pr
   );
 }
 
-function ProfileModal({ email, profile, onUpdate, onLogout, onClose }: { email: string; profile: { avatar: string; username: string }; onUpdate: (p: { avatar: string; username: string }) => void; onLogout: () => Promise<void>; onClose: () => void }) {
+function ProfileModal({ email, profile, onUpdate, onLogout, onClose }: { email: string; profile: { avatar: string; name: string }; onUpdate: (p: { avatar: string; name: string }) => void; onLogout: () => Promise<void>; onClose: () => void }) {
   const [avatar, setAvatar] = useState(profile.avatar || '');
-  const [username, setUsername] = useState(profile.username || '');
+  const [name, setName] = useState(profile.name || '');
   const fileRef = useRef<HTMLInputElement>(null);
 
   function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -199,14 +199,14 @@ function ProfileModal({ email, profile, onUpdate, onLogout, onClose }: { email: 
     reader.onload = () => {
       const result = reader.result as string;
       setAvatar(result);
-      onUpdate({ avatar: result, username });
+      onUpdate({ avatar: result, name });
     };
     reader.readAsDataURL(file);
   }
 
   function handleUsernameChange(val: string) {
-    setUsername(val);
-    onUpdate({ avatar, username: val });
+    setName(val);
+    onUpdate({ avatar, name: val });
   }
 
   return (
@@ -225,7 +225,7 @@ function ProfileModal({ email, profile, onUpdate, onLogout, onClose }: { email: 
               <img src={avatar} alt="" style={{ width: 72, height: 72, borderRadius: '50%', objectFit: 'cover', border: '2px solid #e5e7eb' }} />
             ) : (
               <div style={{ width: 72, height: 72, borderRadius: '50%', background: '#e5e7eb', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, color: '#9ca3af' }}>
-                {(username || email?.split('@')[0] || '?')[0]?.toUpperCase()}
+                {(name || email?.split('@')[0] || '?')[0]?.toUpperCase()}
               </div>
             )}
           </button>
@@ -237,9 +237,10 @@ function ProfileModal({ email, profile, onUpdate, onLogout, onClose }: { email: 
           <label className="text-sm font-medium text-gray-600" style={{ display: 'block', marginBottom: 8 }}>用户名</label>
           <input
             type="text"
-            value={username}
-            onChange={e => handleUsernameChange(e.target.value)}
-            placeholder="请输入用户名"
+            value={name}
+            onChange={e => handleUsernameChange(e.target.value.slice(0, 8))}
+            placeholder="请输入用户名（最多8字符）"
+            maxLength={8}
             className="input-apple"
             style={{ width: '100%', padding: '14px 16px', fontSize: 15 }}
           />

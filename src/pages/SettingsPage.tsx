@@ -85,10 +85,10 @@ export default function SettingsPage({ settings, onSetBalance, onLogout }: Props
               <input
                 type="text"
                 value={name}
-                onChange={e => setName(e.target.value)}
-                placeholder="设置用户名"
+                onChange={e => setName(e.target.value.slice(0, 8))}
+                placeholder="用户名（最多8字符）"
                 className="input-apple flex-1"
-                maxLength={30}
+                maxLength={8}
               />
               <button onClick={saveName} className="btn-primary text-sm px-4 py-2.5 flex-shrink-0">
                 {nameSaved ? '✓ 已保存' : '保存'}
