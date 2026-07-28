@@ -181,7 +181,7 @@ export default function App() {
   function renderPage() {
     switch (page) {
       case 'home':
-        return <HomePage records={records} settings={settings} targets={targets} onSetBalance={handleSetBalance} onSetTarget={handleSetTarget} onDelete={handleDelete} />;
+        return <HomePage records={records} settings={settings} targets={targets} onSetBalance={handleSetBalance} onSetTarget={handleSetTarget} onDelete={handleDelete} userEmail={userEmail} onLogout={handleLogout} />;
       case 'add':
         return <AddPage onAdd={handleAdd} />;
       case 'records':
@@ -264,11 +264,11 @@ export default function App() {
 
       {/* 移动端 */}
       <div className="flex flex-col h-screen md:hidden bg-[var(--apple-bg)]">
-        <main className="flex-1 overflow-auto pb-24">
+        <main className="flex-1 overflow-auto" style={{ paddingBottom: 64 }}>
           {renderPage()}
         </main>
-        <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-100 safe-bottom">
-          <div className="flex items-center justify-around px-2" style={{ paddingTop: 8, paddingBottom: 'max(10px, env(safe-area-inset-bottom))' }}>
+        <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-100" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+          <div className="flex items-center justify-around px-2" style={{ paddingTop: 6, paddingBottom: 4 }}>
             {MOBILE_TABS.map(item => (
               <button
                 key={item.key}

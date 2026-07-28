@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { fmt, mk, getCurMonth, formatDate, formatTime } from './utils';
 import type { Record as FinRecord, MonthTarget, UserSettings } from '../supabase';
 
@@ -9,12 +9,23 @@ interface Props {
   onSetBalance: (v: number) => Promise<void>;
   onSetTarget: (y: number, m: number, v: number) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
+  userEmail: string;
+  onLogout: () => Promise<void>;
 }
 
-export default function HomePage({ records, settings, targets, onSetBalance, onSetTarget, onDelete }: Props) {
+function getUserProfile() {
+  try {
+    const raw = localStorage.getItem('user-profile');
+    return raw ? JSON.parse(raw) : { avatar: '', username: '' };
+  } catch { return { avatar: '', username: '' }; }
+}
+
+export default function HomePage({ records, settings, targets, onSetBalance, onSetTarget, onDelete, userEmail, onLogout }: Props) {
   const cur = getCurMonth();
   const [showSetup, setShowSetup] = useState(false);
   const [showTarget, setShowTarget] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const [profile, setProfile] = useState(getUserProfile);
 
   useEffect(() => {
     setShowSetup(!settings);
@@ -55,12 +66,31 @@ export default function HomePage({ records, settings, targets, onSetBalance, onS
   const threeDaysAgo = new Date(Date.now() - 3 * 86400000).toISOString();
   const recent = records.filter(r => r.timestamp >= threeDaysAgo).slice(0, 10);
 
+  const displayName = profile.username || userEmail?.split('@')[0] || '用户';
+
   return (
     <div className="page-enter p-4 md:p-8">
       <h2 className="text-2xl font-bold mb-6 tracking-tight hidden md:block">总览</h2>
 
       {/* 总余额 */}
-      <div className="card text-center" style={{padding:32,marginBottom:20}}>
+      <div className="card text-center" style={{ padding: 32, marginBottom: 20, position: 'relative' }}>
+        {/* 右上角用户头像 */}
+        <button
+          onClick={() => setShowProfile(true)}
+          style={{ position: 'absolute', top: 16, right: 16, display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', cursor: 'pointer' }}
+        >
+          {profile.avatar ? (
+            <img src={profile.avatar} alt="" style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', border: '1.5px solid #e5e7eb' }} />
+          ) : (
+            <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, color: '#9ca3af' }}>
+              {displayName[0]?.toUpperCase() || '?'}
+            </div>
+          )}
+          <span className="text-sm font-medium text-gray-600 hidden sm:block" style={{ maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {displayName}
+          </span>
+        </button>
+
         <div className="text-sm text-gray-500 mb-1">个人总余额</div>
         <div className={`text-4xl md:text-5xl font-bold amount-font tracking-tight ${balance >= 0 ? 'text-gray-900' : 'text-red-500'}`}>
           {fmt(balance)}
@@ -114,6 +144,7 @@ export default function HomePage({ records, settings, targets, onSetBalance, onS
 
       {showSetup && <SetupModal onSubmit={async (v) => { await onSetBalance(v); setShowSetup(false); }} />}
       {showTarget && <TargetModal year={cur.year} month={cur.month} onSubmit={async (v) => { await onSetTarget(cur.year, cur.month, v); setShowTarget(false); }} />}
+      {showProfile && <ProfileModal email={userEmail} profile={profile} onUpdate={(p) => { setProfile(p); localStorage.setItem('user-profile', JSON.stringify(p)); window.dispatchEvent(new Event('storage')); }} onLogout={onLogout} onClose={() => setShowProfile(false)} />}
     </div>
   );
 }
@@ -151,6 +182,83 @@ function RecordRow({ r, onDelete }: { r: FinRecord; onDelete: (id: string) => Pr
       ) : (
         <button onClick={() => setConfirm(true)} className="text-xs text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity px-2">删除</button>
       )}
+    </div>
+  );
+}
+
+function ProfileModal({ email, profile, onUpdate, onLogout, onClose }: { email: string; profile: { avatar: string; username: string }; onUpdate: (p: { avatar: string; username: string }) => void; onLogout: () => Promise<void>; onClose: () => void }) {
+  const [avatar, setAvatar] = useState(profile.avatar || '');
+  const [username, setUsername] = useState(profile.username || '');
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) { alert('图片不能超过2MB'); return; }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      setAvatar(result);
+      onUpdate({ avatar: result, username });
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function handleUsernameChange(val: string) {
+    setUsername(val);
+    onUpdate({ avatar, username: val });
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.35)' }}>
+      <div className="card w-full max-w-[360px] scale-in" style={{ padding: 32 }}>
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-lg font-bold">个人资料</h3>
+          <button onClick={onClose} style={{ width: 28, height: 28, borderRadius: '50%', background: '#f3f4f6', border: 'none', fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280' }}>✕</button>
+        </div>
+
+        {/* 头像 */}
+        <div className="text-center mb-5">
+          <input ref={fileRef} type="file" accept="image/*" onChange={handleAvatarChange} style={{ display: 'none' }} />
+          <button onClick={() => fileRef.current?.click()} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+            {avatar ? (
+              <img src={avatar} alt="" style={{ width: 72, height: 72, borderRadius: '50%', objectFit: 'cover', border: '2px solid #e5e7eb' }} />
+            ) : (
+              <div style={{ width: 72, height: 72, borderRadius: '50%', background: '#e5e7eb', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, color: '#9ca3af' }}>
+                {(username || email?.split('@')[0] || '?')[0]?.toUpperCase()}
+              </div>
+            )}
+          </button>
+          <div className="text-xs text-gray-400 mt-2">点击更换头像</div>
+        </div>
+
+        {/* 用户名 */}
+        <div style={{ marginBottom: 20 }}>
+          <label className="text-sm font-medium text-gray-600" style={{ display: 'block', marginBottom: 8 }}>用户名</label>
+          <input
+            type="text"
+            value={username}
+            onChange={e => handleUsernameChange(e.target.value)}
+            placeholder="请输入用户名"
+            className="input-apple"
+            style={{ width: '100%', padding: '14px 16px', fontSize: 15 }}
+          />
+        </div>
+
+        {/* 邮箱 */}
+        <div style={{ marginBottom: 24 }}>
+          <label className="text-sm font-medium text-gray-600" style={{ display: 'block', marginBottom: 8 }}>邮箱</label>
+          <div style={{ padding: '14px 16px', background: '#f9fafb', borderRadius: 14, fontSize: 14, color: '#6b7280' }}>{email}</div>
+        </div>
+
+        {/* 退出登录 */}
+        <button
+          onClick={onLogout}
+          style={{ width: '100%', padding: '14px 24px', border: 'none', borderRadius: 14, background: '#fef2f2', color: '#dc2626', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}
+        >
+          退出登录
+        </button>
+      </div>
     </div>
   );
 }
