@@ -58,6 +58,35 @@ export default function App() {
   const [targets, setTargets] = useState<MonthTarget[]>([]);
   const [dataLoaded, setDataLoaded] = useState(false);
 
+  // 网络状态
+  const [, setIsOnline] = useState(navigator.onLine);
+  const [showOfflineBar, setShowOfflineBar] = useState(false);
+
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      setShowOfflineBar(false);
+      // 恢复联网后重新获取云端数据
+      if (session) loadUserData();
+    };
+    const handleOffline = () => {
+      setIsOnline(false);
+      setShowOfflineBar(true);
+    };
+
+    window.addEventListener('app:online', handleOnline);
+    window.addEventListener('app:offline', handleOffline);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('app:online', handleOnline);
+      window.removeEventListener('app:offline', handleOffline);
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [session]);
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session: sess } }) => {
       setSession(sess);
@@ -75,6 +104,10 @@ export default function App() {
   }, []);
 
   async function loadUserData() {
+    if (!navigator.onLine) {
+      setDataLoaded(true); // 离线时也允许使用已缓存的数据
+      return;
+    }
     try {
       const [recs, stgs, tgs] = await Promise.all([
         getRecords(500),
@@ -87,6 +120,7 @@ export default function App() {
       setDataLoaded(true);
     } catch (e) {
       console.error(e);
+      setDataLoaded(true); // 即使失败也允许使用缓存数据
     }
   }
 
@@ -165,6 +199,20 @@ export default function App() {
 
   return (
     <>
+      {/* 离线提示条 */}
+      {showOfflineBar && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 9999,
+          background: '#fef2f2', color: '#dc2626', textAlign: 'center',
+          padding: '10px 16px', fontSize: 13, fontWeight: 600,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+          borderBottom: '1px solid #fecaca',
+        }}>
+          <span style={{width:8,height:8,borderRadius:'50%',background:'#dc2626',display:'inline-block',animation:'pulse 2s infinite'}} />
+          当前处于离线状态，数据可能不是最新
+        </div>
+      )}
+
       {/* 桌面端 */}
       <div className="hidden md:flex h-screen bg-[var(--apple-bg)]">
         <aside className="w-[260px] flex-shrink-0 flex flex-col bg-white border-r border-gray-100">

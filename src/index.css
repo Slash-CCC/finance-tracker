@@ -236,6 +236,7 @@ body {
   animation: spin 0.7s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
 /* ===== 页面过渡 ===== */
 .page-enter { animation: pageIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both; }
