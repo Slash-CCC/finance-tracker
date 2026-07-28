@@ -48,7 +48,7 @@ export default function StatsPage({ records, targets }: Props) {
       <h2 className="text-2xl font-bold mb-6 tracking-tight hidden md:block">统计</h2>
 
       <div className="card" style={{padding:32,marginBottom:20}}>
-        <div className="flex items-center justify-center gap-6 mb-6">
+        <div className="flex items-center justify-center gap-6" style={{marginBottom:24}}>
           <button onClick={() => { if (vm === 1) { setVm(12); setVy(vy - 1); } else setVm(vm - 1); }} className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200 transition-colors">‹</button>
           <span className="text-lg font-bold">{vy}年{vm}月</span>
           <button onClick={() => { if (vm === 12) { setVm(1); setVy(vy + 1); } else setVm(vm + 1); }} className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200 transition-colors">›</button>

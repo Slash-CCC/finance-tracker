@@ -86,14 +86,15 @@ export default function RecordsPage({ records, onDelete }: Props) {
             <button
               key={t}
               onClick={() => setFt(t)}
-              className={`px-5 py-3 rounded-xl text-[15px] font-medium transition-all ${
+              style={{padding:'12px 20px'}}
+              className={`rounded-xl text-[15px] font-medium transition-all ${
                 ft === t ? 'bg-blue-500 text-white shadow-sm' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
               }`}
             >
               {t === 'all' ? '全部' : t === 'expense' ? '支出' : '收入'}
             </button>
           ))}
-          <select value={fcat} onChange={e => setFcat(e.target.value)} className="flex-1 min-w-[130px] bg-gray-50 rounded-xl px-5 py-3 text-[15px] outline-none">
+          <select value={fcat} onChange={e => setFcat(e.target.value)} style={{padding:'12px 20px'}} className="flex-1 min-w-[130px] bg-gray-50 rounded-xl text-[15px] outline-none">
             <option value="">全部分类</option>
             {allCats.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
