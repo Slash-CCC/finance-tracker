@@ -210,8 +210,8 @@ export default function App() {
       <div className="hidden md:flex h-screen bg-[var(--apple-bg)]">
         <aside className="w-[260px] flex-shrink-0 flex flex-col bg-white border-r border-gray-100">
           <div className="px-6 py-8 flex items-center gap-3">
-            <img src="/icon-192.png" alt="" style={{ width: 32, height: 32, borderRadius: 8 }} />
-            <span className="text-xl font-bold tracking-tight">财政管家</span>
+            <img src="/icon-192.png" alt="" style={{ width: 40, height: 40, borderRadius: 10 }} />
+            <span className="text-2xl font-bold tracking-tight">财政管家</span>
           </div>
 
           <nav className="flex-1 px-4 space-y-0.5">

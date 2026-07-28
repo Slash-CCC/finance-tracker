@@ -27,6 +27,23 @@ export default function HomePage({ records, settings, targets, onSetBalance, onS
   const [showProfile, setShowProfile] = useState(false);
   const [profile, setProfile] = useState(getUserProfile);
 
+  // 监听跨组件/跨标签的用户资料变更
+  useEffect(() => {
+    const handler = (e: Event) => {
+      if (e instanceof CustomEvent && e.detail) {
+        setProfile(e.detail);
+      } else {
+        setProfile(getUserProfile());
+      }
+    };
+    window.addEventListener('profile-changed', handler);
+    window.addEventListener('storage', handler);
+    return () => {
+      window.removeEventListener('profile-changed', handler);
+      window.removeEventListener('storage', handler);
+    };
+  }, []);
+
   useEffect(() => {
     setShowSetup(!settings);
   }, [settings]);
@@ -144,7 +161,7 @@ export default function HomePage({ records, settings, targets, onSetBalance, onS
 
       {showSetup && <SetupModal onSubmit={async (v) => { await onSetBalance(v); setShowSetup(false); }} />}
       {showTarget && <TargetModal year={cur.year} month={cur.month} onSubmit={async (v) => { await onSetTarget(cur.year, cur.month, v); setShowTarget(false); }} />}
-      {showProfile && <ProfileModal email={userEmail} profile={profile} onUpdate={(p) => { setProfile(p); localStorage.setItem('user-profile', JSON.stringify(p)); window.dispatchEvent(new Event('storage')); }} onLogout={onLogout} onClose={() => setShowProfile(false)} />}
+      {showProfile && <ProfileModal email={userEmail} profile={profile} onUpdate={(p) => { setProfile(p); localStorage.setItem('user-profile', JSON.stringify(p)); window.dispatchEvent(new Event('storage')); window.dispatchEvent(new CustomEvent('profile-changed', { detail: p })); }} onLogout={onLogout} onClose={() => setShowProfile(false)} />}
     </div>
   );
 }

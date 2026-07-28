@@ -45,87 +45,169 @@ export default function AddPage({ onAdd }: Props) {
 
   const isValid = amount && cat && (cat !== '其他' || detail.trim());
 
-  return (
-    <div className="page-enter p-6 pb-24 md:pb-6 md:max-w-[680px]">
-      <h2 className="text-2xl font-bold mb-6 tracking-tight hidden md:block">记一笔</h2>
-
-      <div className="segment mb-6 max-w-[280px]">
-        <button onClick={() => { setType('expense'); setCat(''); }} className={type === 'expense' ? 'active' : ''}>支出</button>
-        <button onClick={() => { setType('income'); setCat(''); }} className={type === 'income' ? 'active' : ''}>收入</button>
+  const formContent = (
+    <>
+      <div className="segment" style={{ marginBottom: 24, maxWidth: 280 }}>
+        <button
+          onClick={() => { setType('expense'); setCat(''); }}
+          className={type === 'expense' ? 'active' : ''}
+          style={{ padding: '12px 16px' }}
+        >支出</button>
+        <button
+          onClick={() => { setType('income'); setCat(''); }}
+          className={type === 'income' ? 'active' : ''}
+          style={{ padding: '12px 16px' }}
+        >收入</button>
       </div>
 
-      <div className="card" style={{padding:32,marginBottom:20}}>
-        <label className="text-xs font-medium text-gray-500 mb-2 block">{type === 'expense' ? '支出金额' : '收入金额'}</label>
-        <div className="flex items-center gap-3">
-          <span className="text-2xl font-semibold text-gray-400">¥</span>
+      {/* 金额输入 */}
+      <div className="card" style={{ padding: 32, marginBottom: 20 }}>
+        <label className="text-xs font-medium text-gray-500" style={{ display: 'block', marginBottom: 8 }}>
+          {type === 'expense' ? '支出金额' : '收入金额'}
+        </label>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <span style={{ fontSize: 28, fontWeight: 600, color: '#9ca3af' }}>¥</span>
           <input
             type="number"
             inputMode="decimal"
             placeholder="0.00"
             value={amount}
             onChange={e => setAmount(e.target.value)}
-            className="flex-1 text-4xl font-bold outline-none amount-font bg-transparent placeholder:text-gray-300"
+            style={{ flex: 1, fontSize: 40, fontWeight: 700, outline: 'none', background: 'transparent', border: 'none', color: '#1d1d1f' }}
             autoFocus
           />
         </div>
       </div>
 
-      <div className="card" style={{padding:32,marginBottom:20}}>
-        <label className="text-xs font-medium text-gray-500 mb-3 block">选择分类</label>
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
-          {cats.map(c => (
-            <button
-              key={c}
-              onClick={() => setCat(c)}
-              className={`
-                py-4 px-2 rounded-xl text-sm font-medium transition-all border
-                ${cat === c
-                  ? (type === 'expense'
-                    ? 'bg-red-50 border-red-200 text-red-600 shadow-sm'
-                    : 'bg-green-50 border-green-200 text-green-600 shadow-sm')
-                  : 'bg-gray-50/60 border-transparent text-gray-600 hover:bg-gray-100'
-                }
-              `}
-            >
-              {c}
-            </button>
-          ))}
+      {/* 分类选择 */}
+      <div className="card" style={{ padding: 32, marginBottom: 20 }}>
+        <label className="text-xs font-medium text-gray-500" style={{ display: 'block', marginBottom: 12 }}>选择分类</label>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: 10 }}>
+          {cats.map(c => {
+            const selected = cat === c;
+            const isExpense = type === 'expense';
+            return (
+              <button
+                key={c}
+                onClick={() => setCat(c)}
+                style={{
+                  padding: '14px 8px',
+                  borderRadius: 14,
+                  fontSize: 14,
+                  fontWeight: 500,
+                  border: selected
+                    ? (isExpense ? '1.5px solid #fca5a5' : '1.5px solid #86efac')
+                    : '1.5px solid transparent',
+                  background: selected
+                    ? (isExpense ? '#fef2f2' : '#f0fdf4')
+                    : '#f9fafb',
+                  color: selected
+                    ? (isExpense ? '#dc2626' : '#16a34a')
+                    : '#4b5563',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s',
+                  boxShadow: selected ? '0 1px 3px rgba(0,0,0,0.06)' : 'none',
+                }}
+              >
+                {c}
+              </button>
+            );
+          })}
         </div>
       </div>
 
+      {/* 其他说明 */}
       {cat === '其他' && (
-        <div className="card scale-in" style={{padding:32,marginBottom:20}}>
-          <label className="text-xs font-medium text-gray-500 mb-2 block">详细说明</label>
-          <input type="text" placeholder="请说明具体内容..." value={detail} onChange={e => setDetail(e.target.value)} className="input-apple" autoFocus />
+        <div className="card scale-in" style={{ padding: 32, marginBottom: 20 }}>
+          <label className="text-xs font-medium text-gray-500" style={{ display: 'block', marginBottom: 8 }}>详细说明</label>
+          <input
+            type="text"
+            placeholder="请说明具体内容..."
+            value={detail}
+            onChange={e => setDetail(e.target.value)}
+            className="input-apple"
+            style={{ width: '100%', padding: '14px 16px', fontSize: 15 }}
+            autoFocus
+          />
         </div>
       )}
 
+      {/* 亲属卡 */}
       {type === 'expense' && (
-        <div className="card" style={{padding:32,marginBottom:24}}>
-          <label className="flex items-center gap-3 cursor-pointer">
-            <input type="checkbox" checked={fc} onChange={e => setFc(e.target.checked)} className="w-5 h-5 rounded-md accent-blue-500" />
-            <span className="text-sm text-gray-700">亲属卡支付</span>
+        <div className="card" style={{ padding: 32, marginBottom: 24 }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}>
+            <input type="checkbox" checked={fc} onChange={e => setFc(e.target.checked)} style={{ width: 20, height: 20, borderRadius: 6, accentColor: '#3b82f6' }} />
+            <span style={{ fontSize: 14, color: '#374151' }}>亲属卡支付</span>
           </label>
         </div>
       )}
 
+      {/* 提交按钮 */}
       <button
         onClick={submit}
         disabled={submitting || !isValid}
-        className={`
-          w-full rounded-2xl text-white font-bold transition-all flex items-center justify-center gap-2
-          ${!isValid
-            ? 'bg-gray-300 cursor-not-allowed'
-            : type === 'expense'
-              ? 'bg-red-500 hover:bg-red-600 active:scale-[0.98] shadow-lg shadow-red-200'
-              : 'bg-green-500 hover:bg-green-600 active:scale-[0.98] shadow-lg shadow-green-200'
-          }
-        `}
-        style={{padding: '18px 24px', fontSize: '17px'}}
+        style={{
+          width: '100%',
+          padding: '18px 24px',
+          fontSize: 17,
+          fontWeight: 700,
+          color: '#fff',
+          border: 'none',
+          borderRadius: 16,
+          cursor: !isValid ? 'not-allowed' : 'pointer',
+          background: !isValid ? '#d1d5db' : type === 'expense' ? '#ef4444' : '#22c55e',
+          boxShadow: isValid ? (type === 'expense' ? '0 8px 24px rgba(239,68,68,0.2)' : '0 8px 24px rgba(34,197,94,0.2)') : 'none',
+          transition: 'all 0.15s',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 8,
+        }}
       >
         {submitting && <div className="spinner" />}
         {ok ? '✓ 已记录' : type === 'expense' ? '记录支出' : '记录收入'}
       </button>
+    </>
+  );
+
+  return (
+    <div className="page-enter p-4 md:p-8">
+      {/* 手机端：单列 */}
+      <div className="md:hidden pb-24">
+        {formContent}
+      </div>
+
+      {/* 桌面端：左右分栏 */}
+      <div className="hidden md:flex gap-8" style={{ maxWidth: 1100 }}>
+        {/* 左侧：表单 */}
+        <div style={{ flex: '0 0 480px' }}>
+          {formContent}
+        </div>
+        {/* 右侧：提示信息 */}
+        <div style={{ flex: 1, paddingTop: 0 }}>
+          <div className="card" style={{ padding: 32 }}>
+            <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}>💡 记录说明</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <TipItem icon="📝" title="选择类型" desc="点击支出/收入切换记录类型，分类会自动切换" />
+              <TipItem icon="💳" title="亲属卡" desc="支出时可以勾选「亲属卡支付」标记为亲属卡消费" />
+              <TipItem icon="📊" title="分类统计" desc="在「统计」页面可按分类查看环比和同比变化" />
+              <TipItem icon="📋" title="查看明细" desc="在「明细」页面可按日期筛选、导出 CSV/JSON" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TipItem({ icon, title, desc }: { icon: string; title: string; desc: string }) {
+  return (
+    <div style={{ display: 'flex', gap: 12 }}>
+      <span style={{ fontSize: 20 }}>{icon}</span>
+      <div>
+        <div style={{ fontSize: 14, fontWeight: 600, color: '#1d1d1f', marginBottom: 2 }}>{title}</div>
+        <div style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.5 }}>{desc}</div>
+      </div>
     </div>
   );
 }

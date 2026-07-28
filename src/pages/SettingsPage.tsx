@@ -18,6 +18,7 @@ function getProfile(): { name: string; avatar: string } {
 function saveProfile(p: { name: string; avatar: string }) {
   localStorage.setItem('user-profile', JSON.stringify(p));
   window.dispatchEvent(new Event('storage'));
+  window.dispatchEvent(new CustomEvent('profile-changed', { detail: p }));
 }
 
 export default function SettingsPage({ settings, onSetBalance, onLogout }: Props) {
