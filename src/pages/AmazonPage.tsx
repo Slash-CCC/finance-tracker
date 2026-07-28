@@ -58,14 +58,14 @@ export default function AmazonPage({ records, settings }: Props) {
             <button
               key={p.l}
               onClick={() => { setDays(p.d); setCm(false); }}
-              className={`px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+              className={`px-5 py-3.5 rounded-xl text-[15px] font-medium transition-all ${
                 !cm && days === p.d ? 'bg-orange-500 text-white shadow-sm' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
               }`}
             >
               {p.l}
             </button>
           ))}
-          <button onClick={() => setCm(true)} className={`px-4 py-3 rounded-xl text-sm font-medium transition-all ${cm ? 'bg-orange-500 text-white shadow-sm' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'}`}>自定义</button>
+          <button onClick={() => setCm(true)} className={`px-5 py-3.5 rounded-xl text-[15px] font-medium transition-all ${cm ? 'bg-orange-500 text-white shadow-sm' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'}`}>自定义</button>
         </div>
         {cm && (
           <div className="flex gap-3 items-center text-sm">
@@ -76,7 +76,7 @@ export default function AmazonPage({ records, settings }: Props) {
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mb-5">
+      <div className="grid grid-cols-2 gap-4 mb-8">
         <div className="card" style={{padding:32}}>
           <div className="text-xs text-gray-500 mb-1">亚马逊收入</div>
           <div className="text-xl font-bold amount-font text-green-500">{fmt(inc)}</div>

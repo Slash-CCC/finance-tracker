@@ -52,7 +52,8 @@ export default function HomePage({ records, settings, targets, onSetBalance, onS
   avg6 /= 6;
 
   const curTarget = targets.find(t => t.year === cur.year && t.month === cur.month);
-  const recent = records.slice(0, 10);
+  const threeDaysAgo = new Date(Date.now() - 3 * 86400000).toISOString();
+  const recent = records.filter(r => r.timestamp >= threeDaysAgo).slice(0, 10);
 
   return (
     <div className="page-enter p-4 md:p-8">
@@ -76,7 +77,7 @@ export default function HomePage({ records, settings, targets, onSetBalance, onS
           <Stat label="本月收入" value={mInc} color="text-green-500" />
           <Stat label="本月支出" value={mExp} color="text-red-500" />
           <Stat label="净结余" value={mNet} color={mNet >= 0 ? 'text-blue-500' : 'text-red-500'} />
-          <Stat label="6月均结余" value={avg6} color={avg6 >= 0 ? 'text-gray-700' : 'text-red-400'} />
+          <Stat label="半年月均结余" value={avg6} color={avg6 >= 0 ? 'text-gray-700' : 'text-red-400'} />
         </div>
         {curTarget && (
           <div className="mt-5 pt-4 border-t border-gray-100">
@@ -98,7 +99,8 @@ export default function HomePage({ records, settings, targets, onSetBalance, onS
 
       {/* 最近记录 */}
       <div className="card" style={{padding:32}}>
-        <h3 className="text-base font-semibold mb-4">最近记录</h3>
+        <h3 className="text-base font-semibold mb-1">最近记录</h3>
+        <div className="text-xs text-gray-400 mb-4">仅展示3天内记录</div>
         {recent.length === 0 ? (
           <div className="text-center py-8 text-gray-400 text-sm">暂无记录，点击下方 + 开始记账</div>
         ) : (

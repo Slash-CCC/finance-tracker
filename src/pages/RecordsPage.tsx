@@ -81,19 +81,19 @@ export default function RecordsPage({ records, onDelete }: Props) {
       <h2 className="text-2xl font-bold mb-6 tracking-tight hidden md:block">明细</h2>
 
       <div className="card" style={{padding:32,marginBottom:20}}>
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-2.5 flex-wrap">
           {(['all', 'expense', 'income'] as const).map(t => (
             <button
               key={t}
               onClick={() => setFt(t)}
-              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+              className={`px-5 py-3 rounded-xl text-[15px] font-medium transition-all ${
                 ft === t ? 'bg-blue-500 text-white shadow-sm' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
               }`}
             >
               {t === 'all' ? '全部' : t === 'expense' ? '支出' : '收入'}
             </button>
           ))}
-          <select value={fcat} onChange={e => setFcat(e.target.value)} className="flex-1 min-w-[120px] bg-gray-50 rounded-xl px-4 py-2 text-sm outline-none">
+          <select value={fcat} onChange={e => setFcat(e.target.value)} className="flex-1 min-w-[130px] bg-gray-50 rounded-xl px-5 py-3 text-[15px] outline-none">
             <option value="">全部分类</option>
             {allCats.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
@@ -109,25 +109,30 @@ export default function RecordsPage({ records, onDelete }: Props) {
         </div>
       </div>
 
-      <div className="space-y-4 pb-24 md:pb-0">
+      <div className="space-y-0 pb-24 md:pb-0">
         {groups.length === 0 ? (
           <div className="text-center py-12 text-gray-400 text-sm card">暂无匹配记录</div>
-        ) : groups.map(g => (
-          <div key={g.date} className="card" style={{padding:32}}>
-            <div className="flex items-center justify-between mb-3 pb-3 border-b border-gray-100">
-              <span className="text-sm font-semibold text-gray-700">{g.date}</span>
-              <div className="flex gap-3 text-xs">
-                {g.dayIncome > 0 && <span className="text-green-500 font-medium">收 {fmt(g.dayIncome)}</span>}
-                {g.dayExpense > 0 && <span className="text-red-500 font-medium">支 {fmt(g.dayExpense)}</span>}
+        ) : (
+          <div className="card" style={{padding:32}}>
+            {groups.map((g, gi) => (
+              <div key={g.date}>
+                {gi > 0 && <div className="my-4 border-t border-gray-100" />}
+                <div className="flex items-center justify-between py-2 px-3 rounded-lg" style={{background:'#f8f9fa'}}>
+                  <span className="text-sm font-bold text-gray-700">{g.date}</span>
+                  <div className="flex gap-3 text-xs">
+                    {g.dayIncome > 0 && <span className="text-green-500 font-medium">收 {fmt(g.dayIncome)}</span>}
+                    {g.dayExpense > 0 && <span className="text-red-500 font-medium">支 {fmt(g.dayExpense)}</span>}
+                  </div>
+                </div>
+                <div className="space-y-1 mt-2">
+                  {g.records.map(r => (
+                    <RecordRow key={r.id} r={r} onDelete={onDelete} />
+                  ))}
+                </div>
               </div>
-            </div>
-            <div className="space-y-2">
-              {g.records.map(r => (
-                <RecordRow key={r.id} r={r} onDelete={onDelete} />
-              ))}
-            </div>
+            ))}
           </div>
-        ))}
+        )}
       </div>
     </div>
   );
