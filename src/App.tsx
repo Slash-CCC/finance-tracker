@@ -243,8 +243,8 @@ export default function App() {
       </div>
 
       {/* 移动端 */}
-      <div className="flex flex-col h-screen md:hidden bg-[var(--apple-bg)]">
-        <main className="flex-1 overflow-auto" style={{ paddingBottom: 64 }}>
+      <div className="flex flex-col h-screen md:hidden bg-[var(--apple-bg)]" style={{ overflow: 'hidden' }}>
+        <main className="flex-1 overflow-y-auto" style={{ paddingBottom: 64, overflowX: 'hidden', WebkitOverflowScrolling: 'touch' }}>
           {renderPage()}
         </main>
         <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-100" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>

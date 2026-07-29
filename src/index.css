@@ -40,6 +40,9 @@
 html, body, #root {
   height: 100%;
   width: 100%;
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
+  -webkit-overflow-scrolling: touch;
 }
 
 body {
@@ -53,11 +56,18 @@ body {
   letter-spacing: -0.01em;
 }
 
-/* ===== 全局滚动条 ===== */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--apple-gray-3); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--apple-gray-4); }
+/* ===== 全局滚动条（仅桌面端显示） ===== */
+@media (min-width: 768px) {
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--apple-gray-3); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--apple-gray-4); }
+}
+
+@media (max-width: 767px) {
+  ::-webkit-scrollbar { display: none; width: 0; height: 0; }
+  * { -ms-overflow-style: none; scrollbar-width: none; }
+}
 
 /* ===== 字体工具类 ===== */
 .amount-font {
