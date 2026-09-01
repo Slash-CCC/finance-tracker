@@ -20,6 +20,7 @@ import RecordsPage from './pages/RecordsPage';
 import StatsPage from './pages/StatsPage';
 import AmazonPage from './pages/AmazonPage';
 import SettingsPage from './pages/SettingsPage';
+import AiAssistant from './pages/AiAssistant';
 
 type Page = 'home' | 'add' | 'amazon' | 'stats' | 'records' | 'settings';
 
@@ -270,6 +271,9 @@ export default function App() {
           </div>
         </nav>
       </div>
+
+      {/* AI 助手浮动气泡 */}
+      <AiAssistant records={records} settings={settings} targets={targets} />
     </>
   );
 }
