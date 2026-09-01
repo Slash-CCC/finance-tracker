@@ -60,22 +60,49 @@ export default function AddPage({ onAdd }: Props) {
         >收入</button>
       </div>
 
-      {/* 金额输入 */}
-      <div className="card" style={{ padding: 32, marginBottom: 20 }}>
+      {/* 金额输入 + 提交按钮（同一行） */}
+      <div className="card" style={{ padding: 24, marginBottom: 20 }}>
         <label className="text-xs font-medium text-gray-500" style={{ display: 'block', marginBottom: 8 }}>
           {type === 'expense' ? '支出金额' : '收入金额'}
         </label>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{ fontSize: 28, fontWeight: 600, color: '#9ca3af' }}>¥</span>
+          <span style={{ fontSize: 28, fontWeight: 600, color: '#9ca3af', flexShrink: 0 }}>¥</span>
           <input
             type="number"
             inputMode="decimal"
             placeholder="0.00"
             value={amount}
             onChange={e => setAmount(e.target.value)}
-            style={{ flex: 1, fontSize: 40, fontWeight: 700, outline: 'none', background: 'transparent', border: 'none', color: '#1d1d1f' }}
+            onKeyDown={e => { if (e.key === 'Enter' && isValid && !submitting) submit(); }}
+            style={{ flex: 1, fontSize: 36, fontWeight: 700, outline: 'none', background: 'transparent', border: 'none', color: '#1d1d1f', minWidth: 0 }}
             autoFocus
           />
+          {/* 记录按钮（金额框最右边） */}
+          <button
+            onClick={submit}
+            disabled={submitting || !isValid}
+            style={{
+              flexShrink: 0,
+              padding: '14px 20px',
+              fontSize: 16,
+              fontWeight: 700,
+              color: '#fff',
+              border: 'none',
+              borderRadius: 14,
+              cursor: !isValid ? 'not-allowed' : 'pointer',
+              background: !isValid ? '#d1d5db' : type === 'expense' ? '#ef4444' : '#22c55e',
+              boxShadow: isValid ? (type === 'expense' ? '0 4px 14px rgba(239,68,68,0.25)' : '0 4px 14px rgba(34,197,94,0.25)') : 'none',
+              transition: 'all 0.15s',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 6,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {submitting && <div className="spinner" />}
+            {ok ? '✓' : type === 'expense' ? '记录支出' : '记录收入'}
+          </button>
         </div>
       </div>
 
@@ -141,32 +168,6 @@ export default function AddPage({ onAdd }: Props) {
           </label>
         </div>
       )}
-
-      {/* 提交按钮 */}
-      <button
-        onClick={submit}
-        disabled={submitting || !isValid}
-        style={{
-          width: '100%',
-          padding: '18px 24px',
-          fontSize: 17,
-          fontWeight: 700,
-          color: '#fff',
-          border: 'none',
-          borderRadius: 16,
-          cursor: !isValid ? 'not-allowed' : 'pointer',
-          background: !isValid ? '#d1d5db' : type === 'expense' ? '#ef4444' : '#22c55e',
-          boxShadow: isValid ? (type === 'expense' ? '0 8px 24px rgba(239,68,68,0.2)' : '0 8px 24px rgba(34,197,94,0.2)') : 'none',
-          transition: 'all 0.15s',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 8,
-        }}
-      >
-        {submitting && <div className="spinner" />}
-        {ok ? '✓ 已记录' : type === 'expense' ? '记录支出' : '记录收入'}
-      </button>
     </>
   );
 
