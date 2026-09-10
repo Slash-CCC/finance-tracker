@@ -175,7 +175,7 @@ export default function App() {
   function renderPage() {
     switch (page) {
       case 'home':
-        return <HomePage records={records} settings={settings} targets={targets} onSetBalance={handleSetBalance} onSetTarget={handleSetTarget} onDelete={handleDelete} userEmail={userEmail} onLogout={handleResetDevice} />;
+        return <HomePage records={records} settings={settings} targets={targets} onSetBalance={handleSetBalance} onSetTarget={handleSetTarget} onDelete={handleDelete} userEmail={userEmail} onLogout={handleResetDevice} onGoSettings={() => setPage('settings')} />;
       case 'add':
         return <AddPage onAdd={handleAdd} />;
       case 'records':
