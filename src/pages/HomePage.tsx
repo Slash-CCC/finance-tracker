@@ -11,6 +11,7 @@ interface Props {
   onDelete: (id: string) => Promise<void>;
   userEmail: string;
   onLogout: () => void;
+  onGoSettings?: () => void;
 }
 
 function getUserProfile() {
@@ -20,7 +21,7 @@ function getUserProfile() {
   } catch { return { avatar: '', name: '' }; }
 }
 
-export default function HomePage({ records, settings, targets, onSetBalance, onSetTarget, onDelete, userEmail, onLogout }: Props) {
+export default function HomePage({ records, settings, targets, onSetBalance, onSetTarget, onDelete, userEmail, onLogout, onGoSettings }: Props) {
   const cur = getCurMonth();
   const [showSetup, setShowSetup] = useState(false);
   const [showTarget, setShowTarget] = useState(false);
@@ -161,7 +162,7 @@ export default function HomePage({ records, settings, targets, onSetBalance, onS
 
       {showSetup && <SetupModal onSubmit={async (v) => { await onSetBalance(v); setShowSetup(false); }} />}
       {showTarget && <TargetModal year={cur.year} month={cur.month} onSubmit={async (v) => { await onSetTarget(cur.year, cur.month, v); setShowTarget(false); }} />}
-      {showProfile && <ProfileModal email={userEmail} profile={profile} onUpdate={(p) => { setProfile(p); localStorage.setItem('user-profile', JSON.stringify(p)); window.dispatchEvent(new Event('storage')); window.dispatchEvent(new CustomEvent('profile-changed', { detail: p })); }} onLogout={onLogout} onClose={() => setShowProfile(false)} />}
+      {showProfile && <ProfileModal email={userEmail} profile={profile} onUpdate={(p) => { setProfile(p); localStorage.setItem('user-profile', JSON.stringify(p)); window.dispatchEvent(new Event('storage')); window.dispatchEvent(new CustomEvent('profile-changed', { detail: p })); }} onLogout={onLogout} onGoSettings={() => { setShowProfile(false); onGoSettings?.(); }} onClose={() => setShowProfile(false)} />}
     </div>
   );
 }
@@ -203,7 +204,7 @@ function RecordRow({ r, onDelete }: { r: FinRecord; onDelete: (id: string) => Pr
   );
 }
 
-function ProfileModal({ email, profile, onUpdate, onLogout, onClose }: { email: string; profile: { avatar: string; name: string }; onUpdate: (p: { avatar: string; name: string }) => void; onLogout: () => void; onClose: () => void }) {
+function ProfileModal({ email, profile, onUpdate, onLogout, onGoSettings, onClose }: { email: string; profile: { avatar: string; name: string }; onUpdate: (p: { avatar: string; name: string }) => void; onLogout: () => void; onGoSettings: () => void; onClose: () => void }) {
   const [avatar, setAvatar] = useState(profile.avatar || '');
   const [name, setName] = useState(profile.name || '');
   const fileRef = useRef<HTMLInputElement>(null);
@@ -278,6 +279,14 @@ function ProfileModal({ email, profile, onUpdate, onLogout, onClose }: { email: 
             </div>
           </div>
         )}
+
+        {/* 设置与数据迁移（手机端入口） */}
+        <button
+          onClick={onGoSettings}
+          style={{ width: '100%', padding: '14px 24px', border: 'none', borderRadius: 14, background: '#eff6ff', color: '#1d4ed8', fontSize: 15, fontWeight: 600, cursor: 'pointer', marginBottom: 10 }}
+        >
+          设置与数据迁移（迁移码）
+        </button>
 
         {/* 清除本机数据（等价于旧版退出登录） */}
         <button
