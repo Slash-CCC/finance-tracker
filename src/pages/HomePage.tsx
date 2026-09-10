@@ -10,7 +10,7 @@ interface Props {
   onSetTarget: (y: number, m: number, v: number) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   userEmail: string;
-  onLogout: () => Promise<void>;
+  onLogout: () => void;
 }
 
 function getUserProfile() {
@@ -203,7 +203,7 @@ function RecordRow({ r, onDelete }: { r: FinRecord; onDelete: (id: string) => Pr
   );
 }
 
-function ProfileModal({ email, profile, onUpdate, onLogout, onClose }: { email: string; profile: { avatar: string; name: string }; onUpdate: (p: { avatar: string; name: string }) => void; onLogout: () => Promise<void>; onClose: () => void }) {
+function ProfileModal({ email, profile, onUpdate, onLogout, onClose }: { email: string; profile: { avatar: string; name: string }; onUpdate: (p: { avatar: string; name: string }) => void; onLogout: () => void; onClose: () => void }) {
   const [avatar, setAvatar] = useState(profile.avatar || '');
   const [name, setName] = useState(profile.name || '');
   const fileRef = useRef<HTMLInputElement>(null);
@@ -263,18 +263,28 @@ function ProfileModal({ email, profile, onUpdate, onLogout, onClose }: { email: 
           />
         </div>
 
-        {/* 邮箱 */}
-        <div style={{ marginBottom: 24 }}>
-          <label className="text-sm font-medium text-gray-600" style={{ display: 'block', marginBottom: 8 }}>邮箱</label>
-          <div style={{ padding: '14px 16px', background: '#f9fafb', borderRadius: 14, fontSize: 14, color: '#6b7280' }}>{email}</div>
-        </div>
+        {/* 邮箱（仅账号模式显示，当前免登录则隐藏） */}
+        {email ? (
+          <div style={{ marginBottom: 24 }}>
+            <label className="text-sm font-medium text-gray-600" style={{ display: 'block', marginBottom: 8 }}>邮箱</label>
+            <div style={{ padding: '14px 16px', background: '#f9fafb', borderRadius: 14, fontSize: 14, color: '#6b7280' }}>{email}</div>
+          </div>
+        ) : (
+          <div style={{ marginBottom: 24 }}>
+            <label className="text-sm font-medium text-gray-600" style={{ display: 'block', marginBottom: 8 }}>数据说明</label>
+            <div style={{ padding: '14px 16px', background: '#eff6ff', borderRadius: 14, fontSize: 13, color: '#1d4ed8', lineHeight: 1.6 }}>
+              本 App 已免登录。记录自动云端同步。
+              换手机时请先在「设置 → 数据迁移」复制迁移码。
+            </div>
+          </div>
+        )}
 
-        {/* 退出登录 */}
+        {/* 清除本机数据（等价于旧版退出登录） */}
         <button
           onClick={onLogout}
           style={{ width: '100%', padding: '14px 24px', border: 'none', borderRadius: 14, background: '#fef2f2', color: '#dc2626', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}
         >
-          退出登录
+          清除本机数据
         </button>
       </div>
     </div>
