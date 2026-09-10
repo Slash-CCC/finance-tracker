@@ -1,10 +1,11 @@
 import { useState, useRef } from 'react';
 import type { UserSettings } from '../supabase';
+import { exportOwnerToken, setOwnerToken, clearLocalCache } from '../supabase';
 
 interface Props {
   settings: UserSettings | null;
   onSetBalance: (v: number) => Promise<void>;
-  onLogout: () => Promise<void>;
+  onLogout: () => void;
 }
 
 function getProfile(): { name: string; avatar: string } {
@@ -28,6 +29,35 @@ export default function SettingsPage({ settings, onSetBalance, onLogout }: Props
   const [name, setName] = useState(profile.name);
   const [nameSaved, setNameSaved] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  // 数据迁移相关
+  const [myCode, setMyCode] = useState(() => exportOwnerToken());
+  const [importCode, setImportCode] = useState('');
+  const [migMsg, setMigMsg] = useState('');
+  const [showImport, setShowImport] = useState(false);
+
+  function copyCode() {
+    navigator.clipboard?.writeText(myCode).then(() => {
+      setMigMsg('迁移码已复制 ✓');
+      setTimeout(() => setMigMsg(''), 2000);
+    }).catch(() => setMigMsg('复制失败，请手动长按选择复制'));
+  }
+
+  function applyImport() {
+    const code = importCode.trim().toLowerCase();
+    if (!/^[0-9a-f]{64}$/.test(code)) {
+      setMigMsg('迁移码格式不正确（应为64位）');
+      return;
+    }
+    const ok = window.confirm('导入后，本设备将切换为该迁移码对应的云端数据。\n(本机之前若另有数据，建议先导出其迁移码备份)\n\n确定切换吗？');
+    if (!ok) return;
+    const success = setOwnerToken(code);
+    if (!success) { setMigMsg('迁移码无效'); return; }
+    setMyCode(code);
+    clearLocalCache();
+    setMigMsg('已切换，正在重新加载数据…请刷新页面');
+    // 让 App 重新拉取：通过触发 online/重载最简单
+    setTimeout(() => window.location.reload(), 800);
+  }
 
   async function saveBalance() {
     const n = parseFloat(bal);
@@ -113,12 +143,54 @@ export default function SettingsPage({ settings, onSetBalance, onLogout }: Props
         </button>
       </div>
 
-      {/* 账号 */}
+      {/* 数据与设备（免登录 · 云端同步） */}
       <div className="card" style={{padding:32}}>
-        <h3 className="text-base font-semibold mb-5">账号</h3>
-        <button onClick={onLogout} className="w-full py-3.5 rounded-xl bg-red-50 text-red-500 font-medium hover:bg-red-100 transition-colors">
-          退出登录
+        <h3 className="text-base font-semibold mb-1">数据与设备</h3>
+        <div className="text-xs text-gray-400 mb-5">本 App 免登录。记录会自动云端同步，换手机用「迁移码」找回。</div>
+
+        {/* 我的迁移码 */}
+        <div className="rounded-xl bg-gray-50 p-4 mb-3">
+          <div className="text-sm font-medium mb-2">我的迁移码</div>
+          <div className="font-mono text-xs break-all text-gray-600 leading-relaxed select-all" style={{ wordBreak: 'break-all' }}>{myCode}</div>
+          <button onClick={copyCode} className="btn-primary w-full mt-3 text-sm" style={{ padding: '10px' }}>
+            复制迁移码
+          </button>
+        </div>
+
+        {/* 恢复 / 切换设备 */}
+        <button
+          onClick={() => setShowImport(s => !s)}
+          className="w-full py-3 mb-2 rounded-xl bg-blue-50 text-blue-600 font-medium hover:bg-blue-100 transition-colors"
+        >
+          {showImport ? '收起' : '在新设备恢复数据'}
         </button>
+        {showImport && (
+          <div className="rounded-xl bg-gray-50 p-4 mb-3">
+            <div className="text-sm font-medium mb-2">粘贴旧设备迁移码</div>
+            <input
+              type="text"
+              value={importCode}
+              onChange={e => setImportCode(e.target.value)}
+              placeholder="在此粘贴迁移码"
+              className="input-apple w-full mb-2"
+              style={{ padding: '12px 14px', fontSize: 13, fontFamily: 'monospace' }}
+            />
+            <button onClick={applyImport} className="btn-primary w-full text-sm" style={{ padding: '10px' }}>
+              恢复此设备数据
+            </button>
+          </div>
+        )}
+
+        {migMsg && <div className="text-sm text-blue-600 mb-2 text-center">{migMsg}</div>}
+
+        <div className="border-t border-gray-100 pt-4 mt-2">
+          <button
+            onClick={onLogout}
+            className="w-full py-3.5 rounded-xl bg-red-50 text-red-500 font-medium hover:bg-red-100 transition-colors"
+          >
+            清除本机数据（不删除云端记录）
+          </button>
+        </div>
       </div>
     </div>
   );
