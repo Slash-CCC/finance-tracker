@@ -1,9 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   LayoutDashboard, ReceiptText, BarChart3, Package, Settings, CirclePlus,
 } from 'lucide-react';
 import {
-  supabase,
   addRecord,
   deleteRecord,
   getRecords,
@@ -11,16 +10,17 @@ import {
   upsertUserSettings,
   getMonthTargets,
   upsertMonthTarget,
+  flushPending,
+  clearLocalCache,
 } from './supabase';
 import type { Record as FinRecord, MonthTarget, UserSettings } from './supabase';
-import AuthPage from './pages/AuthPage';
 import HomePage from './pages/HomePage';
 import AddPage from './pages/AddPage';
 import RecordsPage from './pages/RecordsPage';
 import StatsPage from './pages/StatsPage';
 import AmazonPage from './pages/AmazonPage';
 import SettingsPage from './pages/SettingsPage';
-import AiAssistant from './pages/AiAssistant';
+// 注：AI 助手功能已暂时移除（数据层迁移期间）。如需恢复请重新挂载 AiAssistant。
 
 type Page = 'home' | 'add' | 'amazon' | 'stats' | 'records' | 'settings';
 
@@ -41,10 +41,8 @@ const MOBILE_TABS: { key: Page; label: string; Icon: typeof LayoutDashboard }[] 
   { key: 'stats', label: '统计', Icon: BarChart3 },
 ];
 
-
 export default function App() {
   const [page, setPage] = useState<Page>('home');
-  const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   const [records, setRecords] = useState<FinRecord[]>([]);
@@ -60,8 +58,8 @@ export default function App() {
     const handleOnline = () => {
       setIsOnline(true);
       setShowOfflineBar(false);
-      // 恢复联网后重新获取云端数据
-      if (session) loadUserData();
+      // 恢复联网：先补传离线期间的写操作，再重新拉取云端数据
+      flushPending().then(() => { if (dataLoadedRef.current) loadUserData(); });
     };
     const handleOffline = () => {
       setIsOnline(false);
@@ -79,29 +77,18 @@ export default function App() {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, [session]);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session: sess } }) => {
-      setSession(sess);
-      if (sess) loadUserData();
-      setLoading(false);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, sess) => {
-      setSession(sess);
-      if (sess) loadUserData();
-      else setDataLoaded(false);
-    });
-
-    return () => subscription.unsubscribe();
   }, []);
 
-  async function loadUserData() {
-    if (!navigator.onLine) {
-      setDataLoaded(true); // 离线时也允许使用已缓存的数据
-      return;
-    }
+  useEffect(() => {
+    loadUserData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // dataLoaded 的 ref 副本，供网络恢复回调判断是否已首载
+  const dataLoadedRef = useRef(false);
+
+  // 加载数据：联网拉云端 + 本地缓存兜底（离线时各 getter 会自动读缓存）
+  const loadUserData = useCallback(async () => {
     try {
       const [recs, stgs, tgs] = await Promise.all([
         getRecords(500),
@@ -111,12 +98,17 @@ export default function App() {
       setRecords(recs);
       setSettings(stgs);
       setTargets(tgs);
+      dataLoadedRef.current = true;
       setDataLoaded(true);
     } catch (e) {
-      console.error(e);
-      setDataLoaded(true); // 即使失败也允许使用缓存数据
+      console.error('加载数据失败', e);
+      // 即使失败也放行，让用户至少能看到界面（本地缓存兜底）
+      dataLoadedRef.current = true;
+      setDataLoaded(true);
+    } finally {
+      setLoading(false);
     }
-  }
+  }, []);
 
   const refreshRecords = useCallback(async () => {
     const recs = await getRecords(500);
@@ -144,11 +136,23 @@ export default function App() {
     setTargets(tgs);
   }, []);
 
-  const handleLogout = useCallback(async () => {
-    await supabase.auth.signOut();
-    setSession(null);
+  // 免登录架构下不再有"登出账号"。
+  // 此操作 = 清除本设备全部数据与缓存并重置 token（用于换设备前 / 彻底重置）。
+  const handleResetDevice = useCallback(() => {
+    const ok = window.confirm('确定要清除本机所有数据吗？\n(云端的记录仍保留，可在新设备输入迁移码找回)\n\n此操作会退出当前设备的数据关联。');
+    if (!ok) return;
+    clearLocalCache();
+    localStorage.removeItem('finance-owner-token');
+    localStorage.removeItem('user-profile');
+    // 重新生成 token，重新加载
+    dataLoadedRef.current = false;
+    setRecords([]);
+    setSettings(null);
+    setTargets([]);
     setDataLoaded(false);
-  }, []);
+    setLoading(true);
+    loadUserData();
+  }, [loadUserData]);
 
   if (loading) {
     return (
@@ -156,10 +160,6 @@ export default function App() {
         <div className="spinner" />
       </div>
     );
-  }
-
-  if (!session) {
-    return <AuthPage onLogin={() => { loadUserData(); }} />;
   }
 
   if (!dataLoaded) {
@@ -170,12 +170,12 @@ export default function App() {
     );
   }
 
-  const userEmail = session.user?.email || '';
+  const userEmail = '';
 
   function renderPage() {
     switch (page) {
       case 'home':
-        return <HomePage records={records} settings={settings} targets={targets} onSetBalance={handleSetBalance} onSetTarget={handleSetTarget} onDelete={handleDelete} userEmail={userEmail} onLogout={handleLogout} />;
+        return <HomePage records={records} settings={settings} targets={targets} onSetBalance={handleSetBalance} onSetTarget={handleSetTarget} onDelete={handleDelete} userEmail={userEmail} onLogout={handleResetDevice} />;
       case 'add':
         return <AddPage onAdd={handleAdd} />;
       case 'records':
@@ -185,7 +185,7 @@ export default function App() {
       case 'amazon':
         return <AmazonPage records={records} settings={settings} />;
       case 'settings':
-        return <SettingsPage settings={settings} onSetBalance={handleSetBalance} onLogout={handleLogout} />;
+        return <SettingsPage settings={settings} onSetBalance={handleSetBalance} onLogout={handleResetDevice} />;
       default:
         return null;
     }
@@ -271,9 +271,6 @@ export default function App() {
           </div>
         </nav>
       </div>
-
-      {/* AI 助手浮动气泡 */}
-      <AiAssistant records={records} settings={settings} targets={targets} />
     </>
   );
 }
