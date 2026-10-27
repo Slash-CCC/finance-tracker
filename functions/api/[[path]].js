@@ -1,3 +1,12 @@
+// ============================================================
+// 财政管家 · Pages Functions 数据 API
+// 挂在 /api/* 路径下，与前端同域（pages.dev），国内免 VPN 可达。
+// 免登录：每设备一个 owner_token(64位hex)，经请求头 x-owner-token 传递。
+//
+// 需要在 Pages 项目设置里绑定 D1：
+//   Settings → Functions → D1 database bindings → 变量名 DB → finance-tracker-db
+// ============================================================
+
 const ALLOWED_ORIGINS = [
   'https://finance-tracker-51y.pages.dev',
   'http://localhost:5173',
@@ -40,14 +49,17 @@ export async function onRequest(context) {
   const env = context.env;
   const origin = request.headers.get('Origin') || '';
 
+  // CORS 预检
   if (request.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: corsHeaders(origin) });
   }
 
+  // 去掉 /api 前缀，得到内部路由（/api/records -> /records）
   const url = new URL(request.url);
   const path = url.pathname.replace(/^\/api/, '') || '/';
   const method = request.method;
 
+  // 健康检查（公开，无需 token，便于验证部署）
   if (path === '/health' && method === 'GET') {
     return json({ ok: true }, 200, origin);
   }
@@ -58,9 +70,36 @@ export async function onRequest(context) {
   const owner = getOwner(request);
   if (!owner) return err('缺少或非法的 x-owner-token 请求头', 401, origin);
 
+  // ==== /summary ====
+  // 由数据库直接汇总，不传输任何明细。
+  // 记录再多也只返回一行，彻底避免"取最近N条导致余额不准"的问题。
+  if (path === '/summary' && method === 'GET') {
+    const row = await db.prepare(
+      `SELECT
+         COALESCE((SELECT initial_balance FROM user_settings WHERE user_id = ?1), 0) AS initial_balance,
+         COALESCE((SELECT SUM(amount) FROM records WHERE user_id = ?1 AND type = 'income'),  0) AS total_income,
+         COALESCE((SELECT SUM(amount) FROM records WHERE user_id = ?1 AND type = 'expense'), 0) AS total_expense,
+         COALESCE((SELECT COUNT(*)     FROM records WHERE user_id = ?1), 0) AS record_count`
+    ).bind(owner).first();
+
+    const initial = Number(row?.initial_balance || 0);
+    const income = Number(row?.total_income || 0);
+    const expense = Number(row?.total_expense || 0);
+    const balance = Math.round((initial + income - expense) * 100) / 100;
+
+    return json({
+      balance,
+      initial_balance: Math.round(initial * 100) / 100,
+      total_income: Math.round(income * 100) / 100,
+      total_expense: Math.round(expense * 100) / 100,
+      record_count: Number(row?.record_count || 0),
+    }, 200, origin);
+  }
+
+  // ==== /records ====
   if (path === '/records') {
     if (method === 'GET') {
-      const limit = Math.min(Number(url.searchParams.get('limit')) || 500, 1000);
+      const limit = Math.min(Number(url.searchParams.get('limit')) || 5000, 20000);
       const { results } = await db.prepare(
         'SELECT * FROM records WHERE user_id = ? ORDER BY timestamp DESC, created_at DESC LIMIT ?'
       ).bind(owner, limit).all();
@@ -82,6 +121,7 @@ export async function onRequest(context) {
     return err('Method not allowed', 405, origin);
   }
 
+  // ==== /records/all ====
   if (path === '/records/all' && method === 'GET') {
     const { results } = await db.prepare(
       'SELECT * FROM records WHERE user_id = ? ORDER BY timestamp ASC'
@@ -89,12 +129,14 @@ export async function onRequest(context) {
     return json(results || [], 200, origin);
   }
 
+  // ==== DELETE /records/:id ====
   if (path.startsWith('/records/') && method === 'DELETE') {
     const id = path.slice('/records/'.length);
     const res = await db.prepare('DELETE FROM records WHERE id = ? AND user_id = ?').bind(id, owner).run();
     return json({ deleted: res.meta.changes > 0 }, 200, origin);
   }
 
+  // ==== /settings ====
   if (path === '/settings') {
     if (method === 'GET') {
       const { results } = await db.prepare('SELECT * FROM user_settings WHERE user_id = ? LIMIT 1').bind(owner).all();
@@ -112,6 +154,7 @@ export async function onRequest(context) {
     return err('Method not allowed', 405, origin);
   }
 
+  // ==== /targets ====
   if (path === '/targets') {
     if (method === 'GET') {
       const y = url.searchParams.get('year');
