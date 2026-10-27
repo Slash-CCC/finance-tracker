@@ -12,8 +12,9 @@ import {
   upsertMonthTarget,
   flushPending,
   clearLocalCache,
+  getSummary,
 } from './supabase';
-import type { Record as FinRecord, MonthTarget, UserSettings } from './supabase';
+import type { Record as FinRecord, MonthTarget, UserSettings, Summary } from './supabase';
 import HomePage from './pages/HomePage';
 import AddPage from './pages/AddPage';
 import RecordsPage from './pages/RecordsPage';
@@ -41,6 +42,7 @@ const MOBILE_TABS: { key: Page; label: string; Icon: typeof LayoutDashboard }[] 
   { key: 'stats', label: '统计', Icon: BarChart3 },
 ];
 
+
 export default function App() {
   const [page, setPage] = useState<Page>('home');
   const [loading, setLoading] = useState(true);
@@ -48,6 +50,7 @@ export default function App() {
   const [records, setRecords] = useState<FinRecord[]>([]);
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [targets, setTargets] = useState<MonthTarget[]>([]);
+  const [summary, setSummary] = useState<Summary | null>(null);
   const [dataLoaded, setDataLoaded] = useState(false);
 
   // 网络状态
@@ -90,14 +93,16 @@ export default function App() {
   // 加载数据：联网拉云端 + 本地缓存兜底（离线时各 getter 会自动读缓存）
   const loadUserData = useCallback(async () => {
     try {
-      const [recs, stgs, tgs] = await Promise.all([
-        getRecords(500),
+      const [recs, stgs, tgs, sum] = await Promise.all([
+        getRecords(5000),
         getUserSettings(),
         getMonthTargets(),
+        getSummary(),
       ]);
       setRecords(recs);
       setSettings(stgs);
       setTargets(tgs);
+      setSummary(sum);
       dataLoadedRef.current = true;
       setDataLoaded(true);
     } catch (e) {
@@ -110,9 +115,11 @@ export default function App() {
     }
   }, []);
 
+  // 刷新明细 + 重新向服务端取汇总（余额永远准，与明细条数无关）
   const refreshRecords = useCallback(async () => {
-    const recs = await getRecords(500);
+    const [recs, sum] = await Promise.all([getRecords(5000), getSummary()]);
     setRecords(recs);
+    setSummary(sum);
   }, []);
 
   const handleAdd = useCallback(async (r: Parameters<typeof addRecord>[0]) => {
@@ -128,6 +135,9 @@ export default function App() {
   const handleSetBalance = useCallback(async (balance: number) => {
     const s = await upsertUserSettings(balance);
     setSettings(s);
+    // 初始余额变了 → 总余额跟着变，重新汇总
+    const sum = await getSummary();
+    setSummary(sum);
   }, []);
 
   const handleSetTarget = useCallback(async (year: number, month: number, target: number) => {
@@ -149,6 +159,7 @@ export default function App() {
     setRecords([]);
     setSettings(null);
     setTargets([]);
+    setSummary(null);
     setDataLoaded(false);
     setLoading(true);
     loadUserData();
@@ -175,7 +186,7 @@ export default function App() {
   function renderPage() {
     switch (page) {
       case 'home':
-        return <HomePage records={records} settings={settings} targets={targets} onSetBalance={handleSetBalance} onSetTarget={handleSetTarget} onDelete={handleDelete} userEmail={userEmail} onLogout={handleResetDevice} onGoSettings={() => setPage('settings')} />;
+        return <HomePage records={records} settings={settings} targets={targets} summary={summary} onSetBalance={handleSetBalance} onSetTarget={handleSetTarget} onDelete={handleDelete} userEmail={userEmail} onLogout={handleResetDevice} onGoSettings={() => setPage('settings')} />;
       case 'add':
         return <AddPage onAdd={handleAdd} />;
       case 'records':
