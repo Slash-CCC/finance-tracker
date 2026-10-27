@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { fmt, mk, getCurMonth, formatDate, formatTime } from './utils';
-import type { Record as FinRecord, MonthTarget, UserSettings } from '../supabase';
+import type { Record as FinRecord, MonthTarget, UserSettings, Summary } from '../supabase';
 
 interface Props {
   records: FinRecord[];
   settings: UserSettings | null;
   targets: MonthTarget[];
+  summary?: Summary | null;
   onSetBalance: (v: number) => Promise<void>;
   onSetTarget: (y: number, m: number, v: number) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
@@ -21,7 +22,7 @@ function getUserProfile() {
   } catch { return { avatar: '', name: '' }; }
 }
 
-export default function HomePage({ records, settings, targets, onSetBalance, onSetTarget, onDelete, userEmail, onLogout, onGoSettings }: Props) {
+export default function HomePage({ records, settings, targets, summary, onSetBalance, onSetTarget, onDelete, userEmail, onLogout, onGoSettings }: Props) {
   const cur = getCurMonth();
   const [showSetup, setShowSetup] = useState(false);
   const [showTarget, setShowTarget] = useState(false);
@@ -55,10 +56,12 @@ export default function HomePage({ records, settings, targets, onSetBalance, onS
     if (today === 1 && !has) setShowTarget(true);
   }, [targets, cur.year, cur.month]);
 
+  // 总余额优先用服务端汇总（SUM 全量，不受已加载明细条数影响）
+  // 服务端不可用时才退回本地累加（离线兜底）
   const initialBalance = Number(settings?.initial_balance ?? 0);
   const totalIncome = records.filter(r => r.type === 'income').reduce((s, r) => s + r.amount, 0);
   const totalExpense = records.filter(r => r.type === 'expense').reduce((s, r) => s + r.amount, 0);
-  const balance = initialBalance + totalIncome - totalExpense;
+  const balance = summary ? summary.balance : initialBalance + totalIncome - totalExpense;
 
   const monthRecords = records.filter(r => {
     const d = new Date(r.timestamp);
