@@ -89,10 +89,20 @@ export interface UserSettings {
   initial_balance: number;
 }
 
+// 服务端汇总结果（总余额等）
+export interface Summary {
+  balance: number;
+  initial_balance: number;
+  total_income: number;
+  total_expense: number;
+  record_count: number;
+}
+
 interface LocalCache {
   records: Record[];
   settings: UserSettings | null;
   targets: MonthTarget[];
+  summary?: Summary | null;
 }
 
 type PendingOp =
@@ -137,9 +147,11 @@ function visibleRecords(): Record[] {
   const c = readCache();
   const cache = c ? c.records : [];
   const pending = readPending();
+  // 应用 delete
   let out = cache;
   const deletedIds = new Set(pending.filter(p => p.kind === 'delete').map(p => p.id));
   if (deletedIds.size) out = out.filter(r => !deletedIds.has(r.id));
+  // 应用 add（去重）
   const added = pending.filter(p => p.kind === 'add').map(p => p.record as Record);
   const addedIds = new Set(added.map(r => r.id));
   out = [...added, ...out.filter(r => !addedIds.has(r.id))];
@@ -178,10 +190,12 @@ export async function flushPending(): Promise<void> {
         await api('DELETE', `/records/${op.id}`);
       }
     } catch {
+      // 单个失败即中断，保留剩余队列下次重试
       return;
     }
   }
   writePending([]);
+  // flush 后重拉权威数据
   try {
     const recs = await api<Record[]>('GET', '/records/all');
     writeCache({ records: recs });
@@ -190,18 +204,20 @@ export async function flushPending(): Promise<void> {
 
 // ====== 记录 CRUD ======
 
-// 查询最近记录（默认500，倒序）。返回"缓存合并待同步后"的可见数据。
-export async function getRecords(limit = 500): Promise<Record[]> {
+// 查询最近记录（默认500，倒序）。返回"缓存合并待同步后"的可见数据，
+// 保证离线/未上云时新增删除也能正确反映。
+export async function getRecords(limit = 5000): Promise<Record[]> {
   let server: Record[] | null = null;
   if (navigator.onLine) {
     try {
-      server = await api<Record[]>('GET', '/records?limit=2000');
+      server = await api<Record[]>('GET', `/records?limit=2000`);
       writeCache({ records: server });
     } catch {
       // 网络失败用缓存
     }
   }
   const visible = visibleRecords();
+  // 倒序截断
   const sorted = [...visible].sort(
     (a, b) => (b.timestamp > a.timestamp ? 1 : b.timestamp < a.timestamp ? -1 : 0)
   );
@@ -244,6 +260,7 @@ export async function addRecord(r: {
       writeCache({ records: [rec, ...(c ? c.records : [])] });
       return rec;
     } catch {
+      // 上云失败 → 入队，本地先用
       const p = readPending(); p.push({ kind: 'add', record: rec }); writePending(p);
       return rec;
     }
@@ -282,6 +299,34 @@ export async function getUserSettings(): Promise<UserSettings | null> {
   const c = readCache();
   return c ? c.settings : null;
 }
+
+// ====== 汇总（总余额）======
+// 由服务端直接 SUM 计算，不传输明细。
+// 记录再多也只返回一行，彻底避免"只取最近N条导致余额不准"。
+export async function getSummary(): Promise<Summary | null> {
+  if (navigator.onLine) {
+    try {
+      const s = await api<Summary>('GET', '/summary');
+      writeCache({ summary: s });
+      return s;
+    } catch {}
+  }
+  const c = readCache();
+  if (c && c.summary) return c.summary;
+  // 离线兜底：用缓存明细本地算
+  const recs = visibleRecords();
+  const income = recs.filter(r => r.type === 'income').reduce((a, r) => a + r.amount, 0);
+  const expense = recs.filter(r => r.type === 'expense').reduce((a, r) => a + r.amount, 0);
+  const init = c && c.settings ? Number(c.settings.initial_balance) : 0;
+  return {
+    balance: Math.round((init + income - expense) * 100) / 100,
+    initial_balance: init,
+    total_income: income,
+    total_expense: expense,
+    record_count: recs.length,
+  };
+}
+
 
 export async function upsertUserSettings(balance: number): Promise<UserSettings> {
   const owner = getOwnerToken();
